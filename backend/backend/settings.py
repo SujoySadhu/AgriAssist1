@@ -33,8 +33,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
-    'django.contrib.admin',
+     'jazzmin',
+     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -177,6 +177,7 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+AUTH_USER_MODEL = 'api.User'
 
 # Custom Admin Settings
 JAZZMIN_SETTINGS = {
