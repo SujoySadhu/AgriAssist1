@@ -183,7 +183,7 @@ AUTH_USER_MODEL = 'api.User'
 JAZZMIN_SETTINGS = {
     "site_title": "Agriassist",
     "site_header": "Agriassist",
-    "site_brand": "Modern Marketplace ",
+    "site_brand": "Aggriassist ",
     # "site_icon": "images/favicon.ico",
     # "site_logo": "images/logos/logo.jpg",
     "welcome_sign": "Welcome To Agriassist",
