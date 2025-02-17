@@ -181,13 +181,13 @@ AUTH_USER_MODEL = 'api.User'
 
 # Custom Admin Settings
 JAZZMIN_SETTINGS = {
-    "site_title": "Desphixs",
-    "site_header": "Desphixs",
+    "site_title": "Agriassist",
+    "site_header": "Agriassist",
     "site_brand": "Modern Marketplace ",
     # "site_icon": "images/favicon.ico",
     # "site_logo": "images/logos/logo.jpg",
-    "welcome_sign": "Welcome To Desphixs",
-    "copyright": "Desphixs",
+    "welcome_sign": "Welcome To Agriassist",
+    "copyright": "Agriassist",
     "user_avatar": "images/photos/logo.jpg",
     "topmenu_links": [
         {"name": "Dashboard", "url": "home", "permissions": ["auth.view_user"]},
