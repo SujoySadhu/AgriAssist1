@@ -80,7 +80,7 @@ class PostListAPIView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return api_models.Post.objects.all()
+        return api_models.Post.objects.filter(status="Active").order_by("-date")
 
 class PostDetailAPIView(generics.RetrieveAPIView):
     serializer_class = api_serializer.PostSerializer
@@ -216,7 +216,7 @@ class DashboardStats(generics.ListAPIView):
         views = api_models.Post.objects.filter(user=user).aggregate(view=Sum("view"))['view']
         posts = api_models.Post.objects.filter(user=user).count()
         likes = api_models.Post.objects.filter(user=user).aggregate(total_likes=Sum("likes"))['total_likes']
-        bookmarks = api_models.Bookmark.objects.all().count()
+        bookmarks = api_models.Bookmark.objects.filter(user=user).count()
 
         return [{
             "views": views,
@@ -231,6 +231,18 @@ class DashboardStats(generics.ListAPIView):
         return Response(serializer.data)
 
 class DashboardPostLists(generics.ListAPIView):
+    serializer_class = api_serializer.PostSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        try:
+            user = api_models.User.objects.get(id=user_id)
+        except api_models.User.DoesNotExist:
+            return api_models.Post.objects.none()  # Return empty queryset if user not found
+
+        return api_models.Post.objects.filter(user=user).order_by("-id")
+
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
 
