@@ -1,6 +1,9 @@
 # Ignore the plant disease model file
 plant_disease/plant_disease_prediction_model.h5
 
+# Ignore environment variables
+.env
+
 # (Optional) Ignore other large or generated files
 *.pyc
 __pycache__/
