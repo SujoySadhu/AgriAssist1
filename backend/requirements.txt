@@ -1,23 +1,78 @@
-# asgiref==3.8.1
+# # asgiref==3.8.1
+# # Django==4.2
+# # sqlparse==0.5.2
+# # tzdata==2024.2
+# asgiref==3.7.2
 # Django==4.2
-# sqlparse==0.5.2
-# tzdata==2024.2
-asgiref==3.7.2
+# django-anymail==9.1
+# django-ckeditor==6.7.0
+# django-ckeditor-5==0.2.10
+# django-cors-headers==3.14.0
+# django-dotenv==1.4.2
+# django-environ==0.9.0
+# django-import-export==3.2.0
+# django-jazzmin==2.6.0
+# django-rest-framework==0.1.0
+# djangorestframework==3.14.0
+# djangorestframework-simplejwt==5.2.2
+# drf-yasg==1.21.7
+# humanize==4.6.0
+# requests==2.31.0
+# shortuuid==1.0.11
+# sqlparse==0.4.4
+# tzdata==2023.3
+# google-generativeai
+# python-dotenv
+# langchain
+# PyPDF2
+# faiss-cpu
+# langchain-google-genai
+# Core Django
 Django==4.2
+djangorestframework==3.14.0
+django-cors-headers==3.14.0
+djangorestframework-simplejwt==5.2.2
+
+# Dependencies
+asgiref==3.7.2
+sqlparse==0.4.4
+tzdata==2023.3
+
+# Third-party packages
 django-anymail==9.1
 django-ckeditor==6.7.0
 django-ckeditor-5==0.2.10
-django-cors-headers==3.14.0
 django-dotenv==1.4.2
 django-environ==0.9.0
 django-import-export==3.2.0
 django-jazzmin==2.6.0
-django-rest-framework==0.1.0
-djangorestframework==3.14.0
-djangorestframework-simplejwt==5.2.2
 drf-yasg==1.21.7
 humanize==4.6.0
 requests==2.31.0
 shortuuid==1.0.11
-sqlparse==0.4.4
-tzdata==2023.3
+
+# Chatbot/AI requirements
+google-generativeai
+python-dotenv
+langchain
+langchain-google-genai
+langchain-community
+langchain-core
+langsmith
+PyPDF2
+faiss-cpu
+
+tensorflow==2.15.0
+keras==2.15.0
+
+numpy>=1.19.2
+scikit-learn>=0.24.2
+albumentations>=1.0.3
+matplotlib>=3.3.4
+seaborn>=0.11.1
+Pillow>=8.2.0 
+
+nltk==3.9.1
+sentence-transformers==2.2.2
+torch==2.1.0
+numpy==1.24.3

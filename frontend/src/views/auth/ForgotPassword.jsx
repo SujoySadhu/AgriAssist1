@@ -1,26 +1,50 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import Header from "../partials/Header";
 import Footer from "../partials/Footer";
-import { Link } from "react-router-dom";
+import { Link,useNavigate} from "react-router-dom";
 import apiInstance from "../../utils/axios";
 import Swal from "sweetalert2";
 
 function ForgotPassword() {
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const navigate=useNavigate();
 
+    // const handleEmailSubmit = async () => {
+    //     try {
+    //         setIsLoading(true);
+    //         await apiInstance.post(`user/password-reset-request/${email}/`).then((res) => {
+    //             setEmail("");
+    //             Swal.fire({
+    //                 icon: "success",
+    //                 title: "Password Reset Email Sent!",
+    //             });
+    //         });
+    //     } catch (error) {
+    //         console.log();
+    //         setIsLoading(false);
+    //     }
+    // };
     const handleEmailSubmit = async () => {
         try {
             setIsLoading(true);
-            await apiInstance.get(`user/password-reset/${email}/`).then((res) => {
-                setEmail("");
-                Swal.fire({
-                    icon: "success",
-                    title: "Password Reset Email Sent!",
-                });
+            await apiInstance.post('user/password-reset-request/', { email })
+            setEmail("");
+            Swal.fire({
+                icon: "success",
+                title: "Password Reset Email Sent!",
+            }).then(() => {
+                // Navigate to VerifyOTP with email state
+                navigate("/verify-otp", { state: { email } });
             });
+
         } catch (error) {
-            console.log();
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: error.response?.data?.error || "Failed to send reset email"
+            });
+        } finally {
             setIsLoading(false);
         }
     };

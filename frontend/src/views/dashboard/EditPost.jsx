@@ -20,6 +20,10 @@ function EditPost() {
     const fetchPost = async () => {
         const response = await apiInstance.get(`author/dashboard/post-detail/${userId}/${param.id}/`);
         setEditPost(response.data);
+        // Set initial image preview when post is fetched
+        if (response.data.image) {
+            setImagePreview(response.data.image);
+        }
     };
 
     const fetchCategory = async () => {
@@ -40,19 +44,18 @@ function EditPost() {
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
-        const reader = new FileReader();
-
-        setEditPost({
-            ...post,
-            image: {
-                file: event.target.files[0],
-                preview: reader.result,
-            },
-        });
-        reader.onloadend = () => {
-            setImagePreview(reader.result);
-        };
         if (selectedFile) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+                setEditPost({
+                    ...post,
+                    image: {
+                        file: selectedFile,
+                        preview: reader.result,
+                    },
+                });
+            };
             reader.readAsDataURL(selectedFile);
         }
     };
@@ -60,47 +63,54 @@ function EditPost() {
     const handleCreatePost = async (e) => {
         setIsLoading(true);
         e.preventDefault();
-        if (!post.title || !post.description || !post.image) {
-            Toast("error", "All Fields Are Required To Create A Post");
+        if (!post.title || !post.description) {
+            Toast("error", "Title and Description are required");
             setIsLoading(false);
             return;
         }
 
-        console.log(post.category);
-
-        const jsonData = {
-            title: post.title,
-            image: post.image.file,
-            description: post.description,
-            tags: post.tags,
-            category: post.category,
-            post_status: post.status,
-        };
-
         const formdata = new FormData();
-
         formdata.append("user_id", userId);
         formdata.append("title", post.title);
-        formdata.append("image", post.image.file);
         formdata.append("description", post.description);
         formdata.append("tags", post.tags);
-        formdata.append("category", post.category.id);
-        formdata.append("post_status", post.status);
+        formdata.append("category", post.category?.id || post.category);
+        formdata.append("status", post.status);
+
+        // Only append image if a new one is selected
+        if (post.image?.file) {
+            formdata.append("image", post.image.file);
+        }
+
         try {
-            const response = await apiInstance.patch(`author/dashboard/post-detail/${userId}/${param.id}/`, formdata, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-            console.log(response.data);
-            setIsLoading(false);
-            Swal.fire({
-                icon: "success",
-                title: "Post Updated successfully.",
-            });
-            navigate("/posts/");
+            const response = await apiInstance.patch(
+                `author/dashboard/post-detail/${userId}/${param.id}/`, 
+                formdata,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Post Updated Successfully",
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    navigate("/posts/");
+                });
+            }
         } catch (error) {
-            console.log(error);
+            console.error("Update error:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Update Failed",
+                text: error.response?.data?.message || "Failed to update post. Please try again.",
+            });
+        } finally {
             setIsLoading(false);
         }
     };
@@ -123,13 +133,9 @@ function EditPost() {
                                                         <p className="mb-0 text-white lead">Use the article builder below to update your article.</p>
                                                     </div>
                                                     <div>
-                                                        <Link to="/instructor/posts/" className="btn" style={{ backgroundColor: "white" }}>
-                                                            {" "}
+                                                        <Link to="/posts/" className="btn" style={{ backgroundColor: "white" }}>
                                                             <i className="fas fa-arrow-left"></i> Back to Posts
                                                         </Link>
-                                                        <a href="instructor-posts.html" className="btn btn-dark ms-2">
-                                                            Save Changes <i className="fas fa-check-circle"></i>
-                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -146,7 +152,17 @@ function EditPost() {
                                             <label htmlFor="postTHumbnail" className="form-label">
                                                 Preview
                                             </label>
-                                            <img style={{ width: "100%", height: "330px", objectFit: "cover", borderRadius: "10px" }} className="mb-4" src={imagePreview || post.image} alt="" />
+                                            <img 
+                                                style={{ 
+                                                    width: "100%", 
+                                                    height: "330px", 
+                                                    objectFit: "cover", 
+                                                    borderRadius: "10px" 
+                                                }} 
+                                                className="mb-4" 
+                                                src={imagePreview || post.image} 
+                                                alt="Post preview" 
+                                            />
                                             <div className="mb-3">
                                                 <label htmlFor="postTHumbnail" className="form-label">
                                                     Thumbnail

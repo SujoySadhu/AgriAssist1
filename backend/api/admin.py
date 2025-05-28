@@ -12,5 +12,6 @@ admin.site.register(api_models.Post, PostAdmin)
 admin.site.register(api_models.Comment)
 admin.site.register(api_models.Notification)
 admin.site.register(api_models.Bookmark)
+admin.site.register(api_models.PendingUser)
 
 # Register your models here.

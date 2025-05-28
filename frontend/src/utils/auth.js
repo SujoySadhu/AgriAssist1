@@ -23,40 +23,185 @@ const Toast = Swal.mixin({
 });
 
 // Function to handle user login
+// export const login = async (email, password) => {
+//     try {
+//         // Making a POST request to obtain user tokens
+//         const { data, status } = await axios.post("user/token/", {
+//             email,
+//             password,
+//         });
+
+//         // If the request is successful (status code 200), set authentication user and display success toast
+//         if (status === 200) {
+//             setAuthUser(data.access, data.refresh);
+
+//             // Displaying a success toast notification
+//             Toast.fire({
+//                 icon: "success",
+//                 title: "Signed in successfully",
+//             });
+//         }
+
+//         // Returning data and error information
+//         return { data, error: null };
+//     } catch (error) {
+//         // Handling errors and returning data and error information
+//         return {
+//             data: null,
+//             error: error.response.data?.detail || "Something went wrong",
+//         };
+//     }
+// };
+// export const login = async (email, password) => {
+//     try {
+//         const { data, status } = await axios.post("user/token/", { email, password });
+        
+//         if (status === 200) {
+//             setAuthUser(data.access, data.refresh);
+//             Toast.fire({ icon: "success", title: "Signed in successfully" });
+//             return { data, error: null };
+//         }
+//     } catch (error) {
+//         let errorMessage = "Something went wrong";
+//         const responseData = error.response?.data;
+
+//         // Handle different error formats from Django
+//         if (responseData) {
+//             errorMessage = 
+//                 responseData.detail || // For simple messages
+//                 responseData.non_field_errors?.[0] || // For form-wide errors
+//                 Object.values(responseData).flat().join(" ") || // For field-specific errors
+//                 "Invalid credentials";
+//         }
+
+//         Toast.fire({ icon: "error", title: errorMessage });
+//         return { data: null, error: errorMessage };
+//     }
+// };
+
+
+//  login function
+// export const login = async (email, password) => {
+//     try {
+//         const { data, status } = await axios.post("user/token/", { email, password });
+        
+//         if (status === 200) {
+//             setAuthUser(data.access, data.refresh);
+//             Toast.fire({ 
+//                 icon: "success", 
+//                 title: "Signed in successfully" 
+//             });
+//             return { success: true, error: null };
+//         }
+//     } catch (error) {
+//         let errorMessage = "Something went wrong";
+//         const response = error.response;
+        
+//         if (!response) {
+//             errorMessage = "Network error - please check your connection";
+//         } else {
+//             const data = response.data;
+            
+//             // Handle different Django error formats
+//             if (data.detail) {
+//                 errorMessage = data.detail;
+//             } else if (data.non_field_errors) {
+//                 errorMessage = data.non_field_errors[0];
+//             } else {
+//                 // Handle field-specific errors
+//                 const fieldErrors = [];
+//                 for (const [field, messages] of Object.entries(data)) {
+//                     fieldErrors.push(`${field}: ${messages.join(" ")}`);
+//                 }
+//                 errorMessage = fieldErrors.join(". ") || "Invalid credentials";
+//             }
+//         }
+
+//         return { 
+//             success: false, 
+//             error: errorMessage,
+//             fieldErrors: error.response?.data || {}
+//         };
+//     }
+// };
 export const login = async (email, password) => {
     try {
-        // Making a POST request to obtain user tokens
-        const { data, status } = await axios.post("user/token/", {
-            email,
-            password,
-        });
+        const { data, status } = await axios.post("user/token/", { email, password });
 
-        // If the request is successful (status code 200), set authentication user and display success toast
         if (status === 200) {
             setAuthUser(data.access, data.refresh);
+            Toast.fire({ icon: "success", title: "Signed in successfully" });
+            return { success: true, error: null, fieldErrors: {} };
+        }
+    } catch (error) {
+        let errorMessage = "Something went wrong";
+        const response = error.response;
+        const fieldErrors = {};
 
-            // Displaying a success toast notification
-            Toast.fire({
-                icon: "success",
-                title: "Signed in successfully",
-            });
+        if (!response) {
+            errorMessage = "Network error - please check your connection";
+        } else {
+            const data = response.data;
+
+            if (data.detail) {
+                errorMessage = data.detail;
+                if (data.detail.toLowerCase().includes("no active account")) {
+                    errorMessage = "Email not found or password is incorrect";
+                }
+            } else if (data.non_field_errors) {
+                errorMessage = data.non_field_errors[0];
+            } else {
+                for (const [field, messages] of Object.entries(data)) {
+                    fieldErrors[field] = messages.join(" ");
+                }
+                errorMessage = Object.values(fieldErrors)[0] || "Invalid credentials";
+            }
         }
 
-        // Returning data and error information
-        return { data, error: null };
-    } catch (error) {
-        // Handling errors and returning data and error information
+        Toast.fire({ icon: "error", title: errorMessage });
+
         return {
-            data: null,
-            error: error.response.data?.detail || "Something went wrong",
+            success: false,
+            error: errorMessage,
+            fieldErrors,
         };
     }
 };
 
+
+
 // Function to handle user registration
+// export const register = async (full_name, email, password, password2) => {
+//     try {
+//         // Making a POST request to register a new user
+//         const { data } = await axios.post("user/register/", {
+//             full_name,
+//             email,
+//             password,
+//             password2,
+//         });
+
+//         // Logging in the newly registered user and displaying success toast
+//         await login(email, password);
+
+//         // Displaying a success toast notification
+//         Toast.fire({
+//             icon: "success",
+//             title: "Signed Up Successfully",
+//         });
+
+//         // Returning data and error information
+//         return { data, error: null };
+//     } catch (error) {
+//         // Handling errors and returning data and error information
+//         return {
+//             data: null,
+//             error: error.response.data || "Something went wrong",
+//         };
+//     }
+// };
 export const register = async (full_name, email, password, password2) => {
     try {
-        // Making a POST request to register a new user
         const { data } = await axios.post("user/register/", {
             full_name,
             email,
@@ -64,22 +209,15 @@ export const register = async (full_name, email, password, password2) => {
             password2,
         });
 
-        // Logging in the newly registered user and displaying success toast
-        await login(email, password);
-
-        // Displaying a success toast notification
-        Toast.fire({
-            icon: "success",
-            title: "Signed Up Successfully",
-        });
-
-        // Returning data and error information
+        // Don't login automatically here - wait for verification
         return { data, error: null };
     } catch (error) {
-        // Handling errors and returning data and error information
+        const errorMessage = error.response?.data?.error?.detail || 
+                          error.response?.data?.error ||
+                          "Registration failed. Please try again.";
         return {
             data: null,
-            error: error.response.data || "Something went wrong",
+            error: errorMessage,
         };
     }
 };
@@ -117,6 +255,33 @@ export const setUser = async () => {
         setAuthUser(accessToken, refreshToken);
     }
 };
+//Update the logout function
+// export const logout = () => {
+//     // Call store's logout action
+//     useAuthStore.getState().logout();
+    
+//     // Show toast notification
+//     Toast.fire({
+//       icon: "success",
+//       title: "You have been logged out.",
+//     });
+//   };
+  
+  // Update the setAuthUser function
+//   export const setAuthUser = (access_token, refresh_token) => {
+//     Cookies.set("access_token", access_token, {
+//       expires: 1,
+//       secure: true,
+//     });
+  
+//     Cookies.set("refresh_token", refresh_token, {
+//       expires: 7,
+//       secure: true,
+//     });
+  
+//     const user = jwt_decode(access_token) ?? null;
+//     useAuthStore.getState().login(user); // Use store's login action
+//   };
 
 // Function to set the authenticated user and update user state
 export const setAuthUser = (access_token, refresh_token) => {
