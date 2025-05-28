@@ -1,0 +1,7 @@
+# Ignore the plant disease model file
+plant_disease/plant_disease_prediction_model.h5
+
+# (Optional) Ignore other large or generated files
+*.pyc
+__pycache__/
+venv/ 

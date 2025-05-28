@@ -9,29 +9,95 @@ import Toast from "../../plugin/Toast";
 import Moment from "../../plugin/Moment";
 
 function Notifications() {
-    const [noti, setNoti] = useState([]);
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(true);
     const userId = useUserData()?.user_id;
 
-    const fetchNoti = async () => {
+    const fetchNotifications = async () => {
+        try {
         const response = await apiInstance.get(`author/dashboard/noti-list/${userId}/`);
-        setNoti(response.data);
+            setNotifications(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-        fetchNoti();
-    }, []);
+        if (userId) {
+            fetchNotifications();
+        }
+    }, [userId]);
 
-    const handleMarkNotiAsSeen = async (notiId) => {
-        const response = await apiInstance.post("author/dashboard/noti-mark-seen/", { noti_id: notiId });
-        console.log(response.data);
-        Toast("success", "Notification Seen", "");
-        fetchNoti();
+    const markAsSeen = async (notiId) => {
+        try {
+            await apiInstance.post("author/dashboard/noti-mark-seen/", {
+                noti_id: notiId,
+            });
+            setNotifications(prevNotifications =>
+                prevNotifications.map(noti =>
+                    noti.id === notiId ? { ...noti, seen: true } : noti
+                )
+            );
+        } catch (error) {
+            console.error("Error marking notification as seen:", error);
+        }
     };
 
+    const getNotificationText = (notification) => {
+        const actorName = notification.actor_profile?.username || "Someone";
+        const postTitle = notification.post?.title || "a post";
+
+        switch (notification.type) {
+            case "Like":
+                return `${actorName} liked your post "${postTitle}"`;
+            case "Comment":
+                return `${actorName} commented on your post "${postTitle}"`;
+            case "Bookmark":
+                return `${actorName} bookmarked your post "${postTitle}"`;
+            default:
+                return "New notification";
+        }
+    };
+
+    const handleClearAll = async () => {
+        try {
+            const markAllSeen = notifications.map(noti => 
+                apiInstance.post("author/dashboard/noti-mark-seen/", {
+                    noti_id: noti.id
+                })
+            );
+            await Promise.all(markAllSeen);
+            
+            setNotifications(prevNotifications =>
+                prevNotifications.map(noti => ({ ...noti, seen: true }))
+            );
+            
+            Toast.success("All notifications marked as seen");
+        } catch (error) {
+            console.error(error);
+            Toast.error("Failed to clear notifications");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="container py-5">
+                <div className="text-center">
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <>
+        <div className="d-flex flex-column min-vh-100">
             <Header />
-            <section className="pt-5 pb-5">
+            <div className="flex-grow-1">
+                <section className="py-5">
                 <div className="container">
                     <div className="row mt-0 mt-md-4">
                         <div className="col-lg-12 col-md-8 col-12">
@@ -41,61 +107,78 @@ function Notifications() {
                                         <h3 className="mb-0">Notifications</h3>
                                         <span>Manage all your notifications from here</span>
                                     </div>
+                                        {notifications.length > 0 && (
+                                            <button 
+                                                className="btn btn-outline-danger btn-sm"
+                                                onClick={handleClearAll}
+                                            >
+                                                <i className="fas fa-trash-alt me-2"></i>
+                                                Clear All
+                                            </button>
+                                        )}
                                 </div>
                                 <div className="card-body">
-                                    <ul className="list-group list-group-flush">
-                                        {noti?.map((n, index) => (
-                                            <>
-                                                <li className="list-group-item p-4 shadow rounded-3 mt-4">
-                                                    <div className="col-12">
-                                                        <div className="d-flex justify-content-between position-relative">
-                                                            <div className="d-sm-flex">
-                                                                <div className="icon-lg bg-opacity-15 rounded-2 flex-shrink-0">{n?.type === "Like" && <i className="fas fa-thumbs-up text-primary fs-5" />}</div>
-                                                                <div className="icon-lg bg-opacity-15 rounded-2 flex-shrink-0">{n?.type === "Comment" && <i className="bi bi-chat-left-quote-fill  text-success fs-5" />}</div>
-                                                                <div className="icon-lg bg-opacity-15 rounded-2 flex-shrink-0">{n?.type === "Bookmark" && <i className="fas fa-bookmark text-danger fs-5" />}</div>
-                                                                <div className="ms-0 ms-sm-3 mt-2 mt-sm-0">
-                                                                    <h6 className="mb-0">{n?.type}</h6>
-                                                                    <p className="mb-0">
-                                                                        {n.type === "Like" && (
-                                                                            <p>
-                                                                                Someone liked your post <b>{n?.post?.title?.slice(0, 30) + "..."}</b>
-                                                                            </p>
-                                                                        )}
-                                                                        {n.type === "Comment" && (
-                                                                            <p>
-                                                                                You have a new comment on <b>{n?.post?.title?.slice(0, 30) + "..."}</b>
-                                                                            </p>
-                                                                        )}
-                                                                        {n.type === "Bookmark" && (
-                                                                            <p>
-                                                                                Someone bookmarked your post <b>{n?.post?.title?.slice(0, 30) + "..."}</b>
-                                                                            </p>
-                                                                        )}
+                                        {notifications.length === 0 ? (
+                                            <div className="text-center py-5">
+                                                <i className="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                                                <h4>No Notifications</h4>
+                                                <p className="text-muted">You don't have any notifications yet.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="list-group">
+                                                {notifications.map((notification) => (
+                                                    <div
+                                                        key={notification.id}
+                                                        className={`list-group-item list-group-item-action ${
+                                                            !notification.seen ? "bg-light" : ""
+                                                        }`}
+                                                        onClick={() => {
+                                                            if (!notification.seen) {
+                                                                markAsSeen(notification.id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <div className="d-flex w-100 justify-content-between align-items-start">
+                                                            <div className="d-flex align-items-start">
+                                                                {notification.actor_profile?.profile_picture && (
+                                                                    <img
+                                                                        src={notification.actor_profile.profile_picture}
+                                                                        alt={notification.actor_profile.username}
+                                                                        className="rounded-circle me-3"
+                                                                        style={{ width: "40px", height: "40px", objectFit: "cover" }}
+                                                                    />
+                                                                )}
+                                                                <div>
+                                                                    <p className="mb-1">
+                                                                        {getNotificationText(notification)}
                                                                     </p>
-                                                                    <span className="small">{Moment(n?.date)}</span>
-                                                                    <br />
-                                                                    <button onClick={() => handleMarkNotiAsSeen(n?.id)} className="btn btn-secondary mt-2" type="button">
-                                                                        Mark as seen
-                                                                        <i className="fas fa-check-circle"></i>
-                                                                    </button>
+                                                                    <small className="text-muted">
+                                                                        <Moment date={notification.date} />
+                                                                    </small>
                                                                 </div>
                                                             </div>
+                                                            {notification.post && (
+                                                                <Link
+                                                                    to={`/${notification.post.slug}`}
+                                                                    className="btn btn-sm btn-primary"
+                                                                >
+                                                                    View Post
+                                                                </Link>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                </li>
-                                            </>
-                                        ))}
-
-                                        {noti?.length < 1 && <p>No notifications yet</p>}
-                                    </ul>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </section>
                 </div>
-            </section>
             <Footer />
-        </>
+        </div>
     );
 }
 

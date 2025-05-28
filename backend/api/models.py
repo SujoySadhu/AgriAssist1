@@ -12,6 +12,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True) 
     full_name = models.CharField(max_length=100, null=True, blank=True)
     otp = models.CharField(max_length=100, null=True, blank=True)
+    otp_created_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=False)
+    
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -25,6 +28,10 @@ class User(AbstractUser):
             self.full_name = email_username
         if self.username == "" or self.username == None:
             self.username = email_username  
+        # if not self.pk:  # Only on creation
+        #     self.is_active = False
+        if self.is_superuser or self.is_staff:
+          self.is_active = True
     
         super(User, self).save(*args, **kwargs)
 
@@ -96,7 +103,7 @@ class Post(models.Model):
     description = models.TextField(null=True, blank=True)
     tags = models.CharField(max_length=100)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='posts')
-    status = models.CharField(max_length=100, choices=STATUS, default="Active")
+    status = models.CharField(max_length=100, choices=STATUS, default="Active",blank=True )
     view = models.IntegerField(default=0)
     likes = models.ManyToManyField(User, blank=True, related_name="likes_user")
     slug = models.SlugField(unique=True, null=True, blank=True)
@@ -114,19 +121,60 @@ class Post(models.Model):
         super(Post, self).save(*args, **kwargs)
     
     def comments(self):
-        return Comment.objects.filter(post=self).order_by("-id")
-
+     return Comment.objects.filter(post=self).order_by("-id")
     
+# class Comment(models.Model):
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+#     name = models.CharField(max_length=100)
+#     email = models.CharField(max_length=100)
+#     comment = models.TextField()
+#     reply = models.TextField(null=True, blank=True)
+#     date = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"{self.post.title} - {self.name}"
+    
+#     class Meta:
+#         verbose_name_plural = "Comment"
+# class Comment(models.Model):
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Add user field
+#     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)  # For nested comments
+#     name = models.CharField(max_length=100, null=True, blank=True)
+#     email = models.CharField(max_length=100, null=True, blank=True)
+#     comment = models.TextField()
+#     reply = models.TextField(null=True, blank=True)
+#     date = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"{self.post.title} - {self.user.username if self.user else self.name}"
+    
+#     class Meta:
+#         verbose_name_plural = "Comment"
+
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
+    post = models.ForeignKey(
+        Post, 
+        on_delete=models.CASCADE, 
+        related_name='comments'  # Add this line
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+    parent = models.ForeignKey(
+        'self', 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name='replies'  # Add this line
+    )
+    
     comment = models.TextField()
-    reply = models.TextField(null=True, blank=True)
+    # reply = models.TextField(null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True)
+    likes = models.ManyToManyField(User, blank=True, related_name="comment_likes")
 
     def __str__(self):
-        return f"{self.post.title} - {self.name}"
+        return f"{self.post.title} - {self.user.username if self.user else self.name}"
     
     class Meta:
         verbose_name_plural = "Comment"
@@ -146,7 +194,8 @@ class Bookmark(models.Model):
 
 class Notification(models.Model):
     NOTI_TYPE = ( ("Like", "Like"), ("Comment", "Comment"), ("Bookmark", "Bookmark"))
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_received')  # User who receives the notification
+    actor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications_created', null=True, blank=True)  # User who performed the action
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     type = models.CharField(max_length=100, choices=NOTI_TYPE)
     seen = models.BooleanField(default=False)
@@ -154,10 +203,42 @@ class Notification(models.Model):
 
     class Meta:
         verbose_name_plural = "Notification"
+        ordering = ['-date']  # Order by most recent first
     
     def __str__(self):
         if self.post:
-            return f"{self.type} - {self.post.title}"
+            return f"{self.actor.username if self.actor else 'Unknown'} {self.type} - {self.post.title}"
         else:
-            return "Notification"        
-        
+            return "Notification"
+
+# models.py
+class PendingUser(models.Model):
+    full_name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128)  # Store hashed password
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    def __str__(self):
+        return self.email
+
+    class Meta:
+        verbose_name = "Pending User"
+        verbose_name_plural = "Pending Users"
+
+class PlantDisease(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='disease_detection/')
+    disease_name = models.CharField(max_length=255)
+    confidence = models.FloatField()
+    description = models.TextField()
+    remedies = models.JSONField()
+    prevention_tips = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.disease_name} - {self.user.username}"

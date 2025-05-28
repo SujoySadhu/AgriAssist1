@@ -1,10 +1,15 @@
+import random
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.hashers import make_password
 
 from api import models as api_models
+from datetime import timedelta
+from django.utils import timezone
+from api.utils import *
 
 # Define a custom serializer that inherits from TokenObtainPairSerializer
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -26,6 +31,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['full_name'] = user.full_name
         token['email'] = user.email
         token['username'] = user.username
+        token['is_superuser'] = user.is_superuser
         try:
             token['vendor_id'] = user.vendor.id
         except:
@@ -36,42 +42,85 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Return the token with custom claims
         return token
 
-# Define a serializer for user registration, which inherits from serializers.ModelSerializer
+# # Define a serializer for user registration, which inherits from serializers.ModelSerializer
+# class RegisterSerializer(serializers.ModelSerializer):
+#     # Define fields for the serializer, including password and password2
+#     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+#     password2 = serializers.CharField(write_only=True, required=True)
+
+#     class Meta:
+#         # Specify the model that this serializer is associated with
+#         model = api_models.User
+#         # Define the fields from the model that should be included in the serializer
+#         fields = ('full_name', 'email',  'password', 'password2')
+
+#     def validate(self, attrs):
+#         # Define a validation method to check if the passwords match
+#         if attrs['password'] != attrs['password2']:
+#             # Raise a validation error if the passwords don't match
+#             raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+#         # Return the validated attributes
+#         return attrs
+
+#     def create(self, validated_data):
+#         # Define a method to create a new user based on validated data
+#         user = api_models.User.objects.create(
+#             full_name=validated_data['full_name'],
+#             email=validated_data['email'],
+#             is_active=False
+#         )
+#         email_username, mobile = user.email.split('@')
+#         user.username = email_username
+
+#         # Set the user's password based on the validated data
+#         otp = str(random.randint(100000, 999999))
+#         user.otp = otp
+#         user.otp_created_at = timezone.now()
+#         user.set_password(validated_data['password'])
+#         user.save()
+        
+#         send_otp_email(user.email, otp)
+#         return user
+
+# serializers.py
 class RegisterSerializer(serializers.ModelSerializer):
-    # Define fields for the serializer, including password and password2
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
-        # Specify the model that this serializer is associated with
-        model = api_models.User
-        # Define the fields from the model that should be included in the serializer
-        fields = ('full_name', 'email',  'password', 'password2')
+        model = api_models.PendingUser  # Changed from User to PendingUser
+        fields = ('full_name', 'email', 'password', 'password2')
 
     def validate(self, attrs):
-        # Define a validation method to check if the passwords match
+        # Check if email exists in either User or PendingUser
+        if api_models.User.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError({"email": "Email already exists."})
+        
+        if api_models.PendingUser.objects.filter(email=attrs['email']).exists():
+            raise serializers.ValidationError({"email": "Verification already pending for this email."})
+
         if attrs['password'] != attrs['password2']:
-            # Raise a validation error if the passwords don't match
             raise serializers.ValidationError({"password": "Password fields didn't match."})
 
-        # Return the validated attributes
         return attrs
 
     def create(self, validated_data):
-        # Define a method to create a new user based on validated data
-        user = api_models.User.objects.create(
+        # Create PendingUser instead of User
+        otp = str(random.randint(100000, 999999))
+        expires_at = timezone.now() + timedelta(minutes=10)
+        
+        pending_user = api_models.PendingUser.objects.create(
             full_name=validated_data['full_name'],
             email=validated_data['email'],
+            password=make_password(validated_data['password']),  # Hash password
+            otp=otp,
+            expires_at=expires_at
         )
-        email_username, mobile = user.email.split('@')
-        user.username = email_username
-
-        # Set the user's password based on the validated data
-        user.set_password(validated_data['password'])
-        user.save()
-
-        # Return the created user
-        return user
+        
+        send_otp_email(pending_user.email, otp)
+        return pending_user    
+        
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -127,37 +176,122 @@ class CategorySerializer(serializers.ModelSerializer):
         else:
             self.Meta.depth = 3
 
-class CommentSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = api_models.Comment
-        fields = "__all__"
 
-    def __init__(self, *args, **kwargs):
-        super(CommentSerializer, self).__init__(*args, **kwargs)
-        request = self.context.get('request')
-        if request and request.method == 'POST':
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 1
-
-
+ 
 class PostSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True)
-    
+    comments = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_bookmarked = serializers.SerializerMethodField()
+    user_profile = serializers.SerializerMethodField()
+
     class Meta:
         model = api_models.Post
         fields = "__all__"
 
-    def __init__(self, *args, **kwargs):
-        super(PostSerializer, self).__init__(*args, **kwargs)
+    def get_user_profile(self, obj):
+        try:
+            profile = api_models.Profile.objects.get(user=obj.user)
+            return {
+                'username': obj.user.username,
+                'profile_picture': profile.image.url if profile.image else None,
+                'full_name': profile.full_name
+            }
+        except api_models.Profile.DoesNotExist:
+            return None
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_comments_count(self, obj):
+        return obj.comments.filter(is_deleted=False).count()
+
+    def get_is_liked(self, obj):
         request = self.context.get('request')
-        if request and request.method == 'POST':
-            self.Meta.depth = 0
-        else:
-            self.Meta.depth = 1
+        if request and request.user.is_authenticated:
+            return request.user in obj.likes.all()
+        return False
+
+    def get_is_bookmarked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return api_models.Bookmark.objects.filter(user=request.user, post=obj).exists()
+        return False
+
+    def get_comments(self, obj):
+        top_comments = obj.comments.filter(parent=None, is_deleted=False).order_by("-date")
+        return CommentSerializer(
+                    top_comments, 
+                    many=True,
+                    context={
+                        'max_depth': 5,  # Set max_depth here
+                        'request': self.context.get('request')
+                    }
+                ).data
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    user_profile = serializers.SerializerMethodField()
+    replies = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    likes_count = serializers.SerializerMethodField()
+    parent = serializers.PrimaryKeyRelatedField(queryset=api_models.Comment.objects.all(), required=False)
+    depth = serializers.IntegerField(write_only=True, required=False)
+
+    class Meta:
+        model = api_models.Comment
+        fields = ['id', 'user', 'user_profile', 'post', 'comment', 'date', 'replies', 
+                 'is_liked', 'likes_count', 'parent', 'depth']
+        read_only_fields = ['user', 'date']
+
+    def get_user_profile(self, obj):
+        try:
+            profile = api_models.Profile.objects.get(user=obj.user)
+            return {
+                'username': obj.user.username,  # Get username from User model
+                'profile_picture': profile.image.url if profile.image else None,
+                'full_name': profile.full_name
+            }
+        except api_models.Profile.DoesNotExist:
+            return None
+    def get_replies(self, obj):
+        current_depth = self.context.get('current_depth', 0)
+        max_depth = self.context.get('max_depth', 5)
+
+        if current_depth >= max_depth:
+            return []
+
+        replies = obj.replies.filter(is_deleted=False).order_by('date')
+
+        return CommentSerializer(
+            replies,
+            many=True,
+            context={
+                'current_depth': current_depth + 1,
+                'max_depth': max_depth,
+                'request': self.context.get('request')
+            }
+        ).data
+    def get_is_liked(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(id=request.user.id).exists()
+        return False
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def validate(self, data):
+        # Ensure post_id is provided when creating a comment
+        if not data.get('post'):
+            raise serializers.ValidationError("post_id is required")
+        return data
+
+    def create(self, validated_data):
+        # Set the user from the request
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
 
 class BookmarkSerializer(serializers.ModelSerializer):
     
@@ -175,10 +309,48 @@ class BookmarkSerializer(serializers.ModelSerializer):
             self.Meta.depth = 3
     
 class NotificationSerializer(serializers.ModelSerializer):  
+    user_profile = serializers.SerializerMethodField()
+    actor_profile = serializers.SerializerMethodField()
+    post = serializers.SerializerMethodField()
+    date = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S.%fZ")
 
     class Meta:
         model = api_models.Notification
         fields = "__all__"
+
+    def get_user_profile(self, obj):
+        try:
+            profile = api_models.Profile.objects.get(user=obj.user)
+            return {
+                'username': obj.user.username,
+                'profile_picture': profile.image.url if profile.image else None,
+                'full_name': profile.full_name
+            }
+        except api_models.Profile.DoesNotExist:
+            return None
+
+    def get_post(self, obj):
+        try:
+            return {
+                'id': obj.post.id,
+                'title': obj.post.title,
+                'slug': obj.post.slug
+            }
+        except:
+            return None
+
+    def get_actor_profile(self, obj):
+        try:
+            if obj.actor:
+                profile = api_models.Profile.objects.get(user=obj.actor)
+                return {
+                    'username': obj.actor.username,
+                    'profile_picture': profile.image.url if profile.image else None,
+                    'full_name': profile.full_name
+                }
+            return None
+        except api_models.Profile.DoesNotExist:
+            return None
 
     def __init__(self, *args, **kwargs):
         super(NotificationSerializer, self).__init__(*args, **kwargs)

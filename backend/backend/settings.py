@@ -13,7 +13,8 @@ from pathlib import Path
 from datetime import timedelta
 # from environs import Env
 import os
-
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', 'AIzaSyANdjlhcK0t29A5Lu3nVyF878T3MmsoZJs')
+ 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +28,7 @@ SECRET_KEY = 'django-insecure-x)f!y0q(dkt3-=4qh*$#i_owf_a)e@)j@*^1ha)!vqfjwu*52#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
 
       # Custom Apps
     'api',
+    'chatbot',
+    'plant_disease',
 
     # Third Party Apps
     'rest_framework',
@@ -64,10 +67,25 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'backend.urls'
 
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [os.path.join(BASE_DIR, "templates")],
+#         'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 'django.template.context_processors.debug',
+#                 'django.template.context_processors.request',
+#                 'django.contrib.auth.context_processors.auth',
+#                 'django.contrib.messages.context_processors.messages',
+#             ],
+#         },
+#     },
+# ]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, "templates")],
+        'DIRS': [os.path.join(BASE_DIR ,'templates')],  # ← Fixed this line
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -137,6 +155,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+FAISS_INDEX_PATH = os.path.join(BASE_DIR, 'chatbot/faiss_index')
 
 
 REST_FRAMEWORK = {
@@ -266,3 +285,23 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sujoyy19@gmail.com'
+EMAIL_HOST_PASSWORD = 'bmak vgtu lmpq rafm'
+DEFAULT_FROM_EMAIL = 'sujoyy19@gmail.com'

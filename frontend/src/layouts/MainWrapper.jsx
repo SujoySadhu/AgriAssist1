@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { setUser } from '../utils/auth';
+import { Link } from 'react-router-dom';
 
 const MainWrapper = ({ children }) => {
     // Initialize the 'loading' state variable and set its initial value to 'true'

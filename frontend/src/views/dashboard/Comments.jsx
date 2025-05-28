@@ -8,18 +8,44 @@ import useUserData from "../../plugin/useUserData";
 import moment from "moment";
 import Moment from "../../plugin/Moment";
 import Toast from "../../plugin/Toast";
+
 function Comments() {
     const [comments, setComments] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [reply, setReply] = useState("");
 
-    const fetchComment = async () => {
-        const response = await apiInstance.get(`author/dashboard/comment-list/`);
-        setComments(response.data);
+    const fetchComments = async () => {
+        try {
+            const response = await apiInstance.get('author/dashboard/comment-list/');
+            setComments(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+        }
     };
 
-    useEffect(() => {
-        fetchComment();
-    }, []);
+    const handleDeleteComment = async (commentId) => {
+        try {
+            // Remove comment from local state only
+            setComments(comments.filter(comment => comment.id !== commentId));
+            Toast.success("Comment removed from history");
+        } catch (error) {
+            console.error(error);
+            Toast.error("Failed to remove comment");
+        }
+    };
+
+    const handleClearAll = async () => {
+        try {
+            // Clear all comments from local state only
+            setComments([]);
+            Toast.success("Comment history cleared");
+        } catch (error) {
+            console.error(error);
+            Toast.error("Failed to clear comment history");
+        }
+    };
 
     const handleSubmitReply = async (commentId) => {
         try {
@@ -28,7 +54,7 @@ function Comments() {
                 reply: reply,
             });
             console.log(response.data);
-            fetchComment();
+            fetchComments();
             Toast("success", "Reply Sent.", "");
             setReply("");
         } catch (error) {
@@ -36,84 +62,85 @@ function Comments() {
         }
     };
 
-    return (
-        <>
-            <Header />
-            <section className="pt-5 pb-5">
-                <div className="container">
-                    <div className="row mt-0 mt-md-4">
-                        <div className="col-lg-12 col-md-8 col-12">
-                            {/* Card */}
-                            <div className="card mb-4">
-                                {/* Card header */}
-                                <div className="card-header d-lg-flex align-items-center justify-content-between">
-                                    <div className="mb-3 mb-lg-0">
-                                        <h3 className="mb-0">Comments</h3>
-                                        <span>You have full control to manage your own comments.</span>
-                                    </div>
-                                </div>
-                                {/* Card body */}
-                                <div className="card-body">
-                                    {/* List group */}
-                                    <ul className="list-group list-group-flush">
-                                        {/* List group item */}
-                                        {comments?.map((c, index) => (
-                                            <li className="list-group-item p-4 shadow rounded-3 mb-3">
-                                                <div className="d-flex">
-                                                    <img src="https://as1.ftcdn.net/v2/jpg/03/53/11/00/1000_F_353110097_nbpmfn9iHlxef4EDIhXB1tdTD0lcWhG9.jpg" alt="avatar" className="rounded-circle avatar-lg" style={{ width: "70px", height: "70px", borderRadius: "50%", objectFit: "cover" }} />
-                                                    <div className="ms-3 mt-2">
-                                                        <div className="d-flex align-items-center justify-content-between">
-                                                            <div>
-                                                                <h4 className="mb-0">{c?.name}</h4>
-                                                                <span>{Moment(c?.date)}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="mt-2">
-                                                            <p className="mt-2">
-                                                                <span className="fw-bold me-2">
-                                                                    Comment <i className="fas fa-arrow-right"></i>
-                                                                </span>
-                                                                {c?.comment}
-                                                            </p>
-                                                            <p className="mt-2 d-flex">
-                                                                <span className="fw-bold me-2">
-                                                                    Response <i className="fas fa-arrow-right"></i>
-                                                                </span>
-                                                                {c?.reply || <p className="text-danger">No Reply</p>}
-                                                            </p>
-                                                            <p>
-                                                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target={`#collapseExample${c.id}`} aria-expanded="false" aria-controls={`collapseExample${c.id}`}>
-                                                                    Send Response
-                                                                </button>
-                                                            </p>
-                                                            <div class="collapse" id={`collapseExample${c.id.toString()}`}>
-                                                                <div class="card card-body">
-                                                                    <div class="mb-3">
-                                                                        <label for="exampleInputEmail1" class="form-label">
-                                                                            Write Response
-                                                                        </label>
-                                                                        <textarea onChange={(e) => setReply(e.target.value)} value={reply} name="" id="" cols="30" className="form-control" rows="4"></textarea>
-                                                                    </div>
+    useEffect(() => {
+        fetchComments();
+    }, []);
 
-                                                                    <button onClick={() => handleSubmitReply(c.id)} type="button" class="btn btn-primary">
-                                                                        Send Response <i className="fas fa-paper-plane"> </i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
+    return (
+        <div className="d-flex flex-column min-vh-100">
+            <Header />
+            <div className="flex-grow-1">
+                <section className="py-4">
+                    <div className="container">
+                        <div className="row">
+                            <div className="col">
+                                <div className="d-flex justify-content-between align-items-center mb-4">
+                                    <h2 className="text-start d-block mb-0">Comments</h2>
+                                    {comments.length > 0 && (
+                                        <button 
+                                            className="btn btn-outline-danger btn-sm"
+                                            onClick={handleClearAll}
+                                        >
+                                            <i className="fas fa-trash-alt me-2"></i>
+                                            Clear All
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <section className="pb-5">
+                    <div className="container">
+                        {loading ? (
+                            <div className="text-center">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        ) : comments.length === 0 ? (
+                            <div className="text-center py-5">
+                                <i className="fas fa-comments fa-3x text-muted mb-3"></i>
+                                <h4>No Comments</h4>
+                                <p className="text-muted">You don't have any comments yet.</p>
+                            </div>
+                        ) : (
+                            <div className="row">
+                                {comments.map((comment) => (
+                                    <div className="col-12 mb-3" key={comment.id}>
+                                        <div className="card shadow-sm">
+                                            <div className="card-body">
+                                                <div className="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <h5 className="card-title mb-1">
+                                                            <i className="fas fa-user me-2"></i>
+                                                            {comment.user_profile?.full_name || comment.user_profile?.username}
+                                                        </h5>
+                                                        <p className="card-text mb-2">{comment.comment}</p>
+                                                        <small className="text-muted">
+                                                            <i className="fas fa-clock me-1"></i>
+                                                            {new Date(comment.date).toLocaleString()}
+                                                        </small>
+                                                    </div>
+                                                    <button 
+                                                        className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => handleDeleteComment(comment.id)}
+                                                    >
+                                                        <i className="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </section>
+            </div>
             <Footer />
-        </>
+        </div>
     );
 }
 
