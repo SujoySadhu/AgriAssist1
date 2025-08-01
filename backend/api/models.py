@@ -123,6 +123,29 @@ class Post(models.Model):
     def comments(self):
      return Comment.objects.filter(post=self).order_by("-id")
     
+    def get_all_images(self):
+        """Get all images for this post including main image and additional images"""
+        images = []
+        if self.image:
+            images.append(self.image)
+        additional_images = self.post_images.all().order_by('order')
+        images.extend([img.image for img in additional_images])
+        return images
+
+class PostImage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_images')
+    image = models.FileField(upload_to="post_images/")
+    caption = models.CharField(max_length=255, blank=True, null=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name_plural = "Post Images"
+    
+    def __str__(self):
+        return f"{self.post.title} - Image {self.order + 1}"
+
 # class Comment(models.Model):
 #     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 #     name = models.CharField(max_length=100)

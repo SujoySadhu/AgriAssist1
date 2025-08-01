@@ -21,6 +21,7 @@ urlpatterns = [
     path('post/detail/<slug>/', api_views.PostDetailAPIView.as_view()), 
     path('post/like-post/', api_views.LikePostAPIView.as_view()),
     path('post/bookmark-post/', api_views.BookmarkPostAPIView.as_view()),
+    path('post/search/', api_views.AdvancedSearchAPIView.as_view(), name='advanced-search'),
     
     # Comment Endpoints
     path('comments/', api_views.CommentListAPIView.as_view(), name='comment-list'),

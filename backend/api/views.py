@@ -371,20 +371,22 @@ class DashboardPostCreateAPIView(generics.CreateAPIView):
         user_id = request.data.get('user_id')
         
         title = request.data.get('title')
-        image = request.data.get('image')
+        image = request.FILES.get('image')  # Use FILES for file uploads
         description = request.data.get('description')
         tags = request.data.get('tags')
         category_id = request.data.get('category')
         post_status = request.data.get('status')
+        additional_images = request.FILES.getlist('additional_images')  # Multiple images
         print("Received status:", request.data.get('status')) 
 
-        print(user_id)
-        print(title)
-        print(image)
-        print(description)
-        print(tags)
-        print(category_id)
-        print(post_status)
+        print(f"User ID: {user_id}")
+        print(f"Title: {title}")
+        print(f"Image: {image}")
+        print(f"Description: {description}")
+        print(f"Tags: {tags}")
+        print(f"Category ID: {category_id}")
+        print(f"Status: {post_status}")
+        print(f"Additional images count: {len(additional_images)}")
 
         user = api_models.User.objects.get(id=user_id)
         profile = api_models.Profile.objects.get(user=user)
@@ -400,6 +402,15 @@ class DashboardPostCreateAPIView(generics.CreateAPIView):
             category=category,
             status=post_status
         )
+
+        # Handle additional images
+        if additional_images:
+            for index, img in enumerate(additional_images):
+                api_models.PostImage.objects.create(
+                    post=post,
+                    image=img,
+                    order=index
+                )
 
         return Response({"message": "Post Created Successfully"}, status=status.HTTP_201_CREATED)
 
@@ -417,29 +428,51 @@ class DashboardPostEditAPIView(generics.RetrieveUpdateDestroyAPIView):
         post_instance = self.get_object()
 
         title = request.data.get('title')
-        image = request.data.get('image')
+        image = request.FILES.get('image')  # Use FILES for file uploads
         description = request.data.get('description')
         tags = request.data.get('tags')
         category_id = request.data.get('category')
         post_status = request.data.get('status')
+        additional_images = request.FILES.getlist('additional_images')  # Multiple images
 
-        print(title)
-        print(image)
-        print(description)
-        print(tags)
-        print(category_id)
-        print(post_status)
+        print(f"Title: {title}")
+        print(f"Image: {image}")
+        print(f"Description: {description}")
+        print(f"Tags: {tags}")
+        print(f"Category ID: {category_id}")
+        print(f"Status: {post_status}")
+        print(f"Additional images count: {len(additional_images)}")
 
-        category = api_models.Category.objects.get(id=category_id)
+        try:
+            category = api_models.Category.objects.get(id=category_id)
+        except api_models.Category.DoesNotExist:
+            return Response({"message": "Category not found"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Update post fields
         post_instance.title = title
-        if image != "undefined":
-            post_instance.image = image
         post_instance.description = description
         post_instance.tags = tags
         post_instance.category = category
         post_instance.status = post_status
+
+        # Handle main image update
+        if image:
+            post_instance.image = image
+
         post_instance.save()
+
+        # Handle additional images
+        if additional_images:
+            # Clear existing additional images
+            post_instance.post_images.all().delete()
+            
+            # Add new additional images
+            for index, img in enumerate(additional_images):
+                api_models.PostImage.objects.create(
+                    post=post_instance,
+                    image=img,
+                    order=index
+                )
 
         return Response({"message": "Post Updated Successfully"}, status=status.HTTP_200_OK)
 
@@ -706,3 +739,38 @@ class PlantDiseaseDetectionView(APIView):
                 {'detail': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class AdvancedSearchAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            query = request.data.get('query', '').strip()
+            if not query:
+                return Response({
+                    "message": "Query parameter is required",
+                    "results": []
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Search in title and description only
+            posts = api_models.Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query),
+                status="Active"  # Only search active posts
+            ).distinct().order_by('-date')  # Remove duplicates and order by date
+
+            # Serialize the results
+            serializer = api_serializer.PostSerializer(posts, many=True, context={'request': request})
+            
+            return Response({
+                "results": serializer.data,
+                "count": len(serializer.data),
+                "query": query
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({
+                "message": "Search failed",
+                "error": str(e),
+                "results": []
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
