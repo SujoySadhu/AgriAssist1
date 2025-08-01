@@ -178,6 +178,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
  
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = api_models.PostImage
+        fields = ['id', 'image', 'caption', 'order', 'created_at']
+
 class PostSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
@@ -185,6 +190,8 @@ class PostSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_bookmarked = serializers.SerializerMethodField()
     user_profile = serializers.SerializerMethodField()
+    post_images = PostImageSerializer(many=True, read_only=True)
+    all_images = serializers.SerializerMethodField()
 
     class Meta:
         model = api_models.Post
@@ -192,25 +199,26 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_user_profile(self, obj):
         try:
-            profile = api_models.Profile.objects.get(user=obj.user)
             return {
-                'username': obj.user.username,
-                'profile_picture': profile.image.url if profile.image else None,
-                'full_name': profile.full_name
+                'id': obj.profile.id,
+                'full_name': obj.profile.full_name,
+                'image': obj.profile.image.url if obj.profile.image else None,
+                'bio': obj.profile.bio,
+                'author': obj.profile.author
             }
-        except api_models.Profile.DoesNotExist:
+        except:
             return None
 
     def get_likes_count(self, obj):
         return obj.likes.count()
 
     def get_comments_count(self, obj):
-        return obj.comments.filter(is_deleted=False).count()
+        return obj.comments.count()
 
     def get_is_liked(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return request.user in obj.likes.all()
+            return obj.likes.filter(id=request.user.id).exists()
         return False
 
     def get_is_bookmarked(self, obj):
@@ -220,15 +228,30 @@ class PostSerializer(serializers.ModelSerializer):
         return False
 
     def get_comments(self, obj):
-        top_comments = obj.comments.filter(parent=None, is_deleted=False).order_by("-date")
-        return CommentSerializer(
-                    top_comments, 
-                    many=True,
-                    context={
-                        'max_depth': 5,  # Set max_depth here
-                        'request': self.context.get('request')
-                    }
-                ).data
+        comments = obj.comments.filter(parent=None).order_by('-date')
+        return CommentSerializer(comments, many=True, context=self.context).data
+
+    def get_all_images(self, obj):
+        """Get all images including main image and additional images"""
+        images = []
+        if obj.image:
+            images.append({
+                'id': 'main',
+                'image': obj.image.url if obj.image else None,
+                'caption': 'Main Image',
+                'order': 0
+            })
+        
+        # Add additional images
+        for post_image in obj.post_images.all():
+            images.append({
+                'id': post_image.id,
+                'image': post_image.image.url if post_image.image else None,
+                'caption': post_image.caption,
+                'order': post_image.order + 1
+            })
+        
+        return sorted(images, key=lambda x: x['order'])
 
 
 class CommentSerializer(serializers.ModelSerializer):

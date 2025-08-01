@@ -89,7 +89,7 @@ def get_answer(question, api_key):
         )
 
         # Retrieve more documents to increase relevant context
-        docs = db.similarity_search(question, k=100)
+        docs = db.similarity_search(question, k=30)
         if not docs:
             return "কোন প্রাসঙ্গিক তথ্য খুঁজে পাওয়া যায়নি।"
 

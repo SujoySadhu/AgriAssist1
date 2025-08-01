@@ -14,6 +14,7 @@ import tensorflow as tf
 import json
 import logging
 from .predict import load_trained_model, predict_image
+from .services import GeminiService
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -33,6 +34,9 @@ class DetectDiseaseAPIView(APIView):
             logger.error(f"Error loading model: {str(e)}")
             self.model = None
             self.class_names = None
+        
+        # Initialize Gemini service
+        self.gemini_service = GeminiService()
 
     def post(self, request, *args, **kwargs):
         """Handle image upload and disease prediction"""
@@ -42,7 +46,12 @@ class DetectDiseaseAPIView(APIView):
             if not image:
                 return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
             
-            logger.info(f"Received image: {image.name}")
+            # Get language preference from request (default to 'bn' for Bangla)
+            language = request.data.get('language', 'bn')
+            if language not in ['en', 'bn']:
+                language = 'bn'  # Default to Bangla if invalid language
+            
+            logger.info(f"Received image: {image.name} with language: {language}")
             
             # Convert image to RGB
             img = Image.open(image)
@@ -83,13 +92,30 @@ class DetectDiseaseAPIView(APIView):
             # Determine if plant is healthy
             is_healthy = 'healthy' in disease_name.lower()
             
+            # Get additional information from Gemini API with language preference
+            if is_healthy:
+                # Get care tips for healthy plants
+                plant_info = self.gemini_service.get_healthy_plant_info(plant_name, language)
+                additional_info = {
+                    'description': plant_info.get('description', ''),
+                    'care_tips': plant_info.get('care_tips', [])
+                }
+            else:
+                # Get disease description and remedies
+                disease_info = self.gemini_service.get_disease_info(plant_name, disease_name, language)
+                additional_info = {
+                    'description': disease_info.get('description', ''),
+                    'remedies': disease_info.get('remedies', [])
+                }
+            
             # Prepare response
             response_data = {
                 'plant_name': plant_name,
                 'disease_name': disease_name,
                 'confidence': confidence,
                 'is_healthy': is_healthy,
-                'top_3_predictions': top_3_predictions
+                'top_3_predictions': top_3_predictions,
+                'additional_info': additional_info
             }
             
             logger.info(f"Response data: {response_data}")
