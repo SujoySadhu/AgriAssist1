@@ -227,7 +227,7 @@ export const logout = () => {
     // Removing access and refresh tokens from cookies, resetting user state, and displaying success toast
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
-    useAuthStore.getState().setUser(null);
+    useAuthStore.getState().logout(); // Use the store's logout method
 
     // Displaying a success toast notification
     Toast.fire({

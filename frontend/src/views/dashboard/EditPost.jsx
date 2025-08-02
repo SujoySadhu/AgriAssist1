@@ -11,6 +11,9 @@ import Swal from "sweetalert2";
 function EditPost() {
     const [post, setEditPost] = useState({ image: "", title: "", description: "", category: parseInt(""), tags: "", status: "" });
     const [imagePreview, setImagePreview] = useState("");
+    const [additionalImages, setAdditionalImages] = useState([]);
+    const [additionalImagePreviews, setAdditionalImagePreviews] = useState([]);
+    const [existingAdditionalImages, setExistingAdditionalImages] = useState([]);
     const [categoryList, setCategoryList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const userId = useUserData()?.user_id;
@@ -23,6 +26,10 @@ function EditPost() {
         // Set initial image preview when post is fetched
         if (response.data.image) {
             setImagePreview(response.data.image);
+        }
+        // Set existing additional images
+        if (response.data.post_images) {
+            setExistingAdditionalImages(response.data.post_images);
         }
     };
 
@@ -60,6 +67,33 @@ function EditPost() {
         }
     };
 
+    const handleAdditionalImagesChange = (event) => {
+        const selectedFiles = Array.from(event.target.files);
+        if (selectedFiles.length > 0) {
+            setAdditionalImages(selectedFiles);
+            
+            // Create previews for all selected images
+            const previews = [];
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    previews[index] = reader.result;
+                    if (previews.length === selectedFiles.length) {
+                        setAdditionalImagePreviews([...previews]);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removeAdditionalImage = (index) => {
+        const newImages = additionalImages.filter((_, i) => i !== index);
+        const newPreviews = additionalImagePreviews.filter((_, i) => i !== index);
+        setAdditionalImages(newImages);
+        setAdditionalImagePreviews(newPreviews);
+    };
+
     const handleCreatePost = async (e) => {
         setIsLoading(true);
         e.preventDefault();
@@ -81,6 +115,11 @@ function EditPost() {
         if (post.image?.file) {
             formdata.append("image", post.image.file);
         }
+
+        // Append additional images
+        additionalImages.forEach((image, index) => {
+            formdata.append("additional_images", image);
+        });
 
         try {
             const response = await apiInstance.patch(
@@ -169,6 +208,86 @@ function EditPost() {
                                                 </label>
                                                 <input onChange={handleFileChange} name="image" id="postTHumbnail" className="form-control" type="file" />
                                             </div>
+
+                                            {/* Additional Images Section */}
+                                            <div className="mb-3">
+                                                <label htmlFor="additionalImages" className="form-label">
+                                                    Additional Images (Optional)
+                                                </label>
+                                                <div className="d-flex gap-2 align-items-center">
+                                                    <input 
+                                                        onChange={handleAdditionalImagesChange} 
+                                                        name="additionalImages" 
+                                                        id="additionalImages" 
+                                                        className="form-control" 
+                                                        type="file" 
+                                                        multiple
+                                                        accept="image/*"
+                                                        style={{ display: 'none' }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-primary"
+                                                        onClick={() => document.getElementById('additionalImages').click()}
+                                                    >
+                                                        <i className="fas fa-plus me-2"></i>
+                                                        Add Images
+                                                    </button>
+                                                    <span className="text-muted">
+                                                        {additionalImages.length > 0 ? `${additionalImages.length} new image(s) selected` : 'No new images selected'}
+                                                    </span>
+                                                </div>
+                                                <small className="text-muted">You can select multiple images. These will be displayed in a gallery on the post detail page.</small>
+                                            </div>
+
+                                            {/* Existing Additional Images */}
+                                            {existingAdditionalImages.length > 0 && (
+                                                <div className="mb-3">
+                                                    <label className="form-label">Existing Additional Images</label>
+                                                    <div className="row">
+                                                        {existingAdditionalImages.map((img, index) => (
+                                                            <div key={index} className="col-md-3 col-sm-4 col-6 mb-2">
+                                                                <img 
+                                                                    src={img.image} 
+                                                                    alt={`Existing image ${index + 1}`}
+                                                                    className="img-fluid rounded"
+                                                                    style={{ height: "120px", objectFit: "cover", width: "100%" }}
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <small className="text-muted">These images will be replaced if you upload new additional images.</small>
+                                                </div>
+                                            )}
+
+                                            {/* Additional Images Preview */}
+                                            {additionalImagePreviews.length > 0 && (
+                                                <div className="mb-3">
+                                                    <label className="form-label">New Additional Images Preview</label>
+                                                    <div className="row">
+                                                        {additionalImagePreviews.map((preview, index) => (
+                                                            <div key={index} className="col-md-3 col-sm-4 col-6 mb-2">
+                                                                <div className="position-relative">
+                                                                    <img 
+                                                                        src={preview} 
+                                                                        alt={`Additional image ${index + 1}`}
+                                                                        className="img-fluid rounded"
+                                                                        style={{ height: "120px", objectFit: "cover", width: "100%" }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-danger btn-sm position-absolute top-0 end-0"
+                                                                        style={{ margin: "2px" }}
+                                                                        onClick={() => removeAdditionalImage(index)}
+                                                                    >
+                                                                        <i className="fas fa-times"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <div className="mb-3">
                                                 <label className="form-label">Title</label>

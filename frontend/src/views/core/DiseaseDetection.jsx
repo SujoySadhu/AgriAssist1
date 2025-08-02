@@ -4,6 +4,7 @@ import Footer from "../partials/Footer";
 import Toast from "../../plugin/Toast";
 import useAxios from '../../utils/useAxios';
 import { useAuthStore } from "../../store/auth";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const DiseaseDetection = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -11,6 +12,7 @@ const DiseaseDetection = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const { allUserData } = useAuthStore();
+  const { t, language } = useLanguage();
   const api = useAxios();
 
   const handleImageSelect = (event) => {
@@ -37,6 +39,7 @@ const DiseaseDetection = () => {
       const formData = new FormData();
       formData.append('image', selectedImage);
       formData.append('user_id', allUserData?.user_id);
+      formData.append('language', language); // Send current language preference
 
       const response = await api.post('plant/detect-disease/', formData, {
         headers: {
@@ -91,11 +94,11 @@ const DiseaseDetection = () => {
           <div className="col-md-8">
             <div className="card shadow-sm">
               <div className="card-body p-4">
-                <h2 className="text-center mb-4">Plant Disease Detection</h2>
+                <h2 className="text-center mb-4">{t('plantDiseaseDetection')}</h2>
                 
                 <div className="text-center mb-4">
                   <p className="text-muted">
-                    Upload a clear image of your plant's affected area to detect diseases and get treatment recommendations.
+                    {t('uploadDescription')}
                   </p>
                 </div>
 
@@ -123,8 +126,8 @@ const DiseaseDetection = () => {
                       ) : (
                         <div className="p-5 border-2 border-dashed rounded-3">
                           <i className="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                          <h5>Drag & Drop or Click to Upload</h5>
-                          <p className="text-muted">Supported formats: JPG, PNG (Max 5MB)</p>
+                          <h5>{t('dragDropText')}</h5>
+                          <p className="text-muted">{t('supportedFormats')}</p>
                           <input
                             type="file"
                             accept="image/*"
@@ -133,7 +136,7 @@ const DiseaseDetection = () => {
                             id="imageUpload"
                           />
                           <label htmlFor="imageUpload" className="btn btn-primary mt-3">
-                            Select Image
+                            {t('selectImage')}
                           </label>
                         </div>
                       )}
@@ -151,12 +154,12 @@ const DiseaseDetection = () => {
                       {loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          Analyzing...
+                          {t('analyzing')}
                         </>
                       ) : (
                         <>
                           <i className="fas fa-microscope me-2"></i>
-                          Analyze Image
+                          {t('analyzeImage')}
                         </>
                       )}
                     </button>
@@ -169,47 +172,92 @@ const DiseaseDetection = () => {
                       <div className={`card-header ${result.is_healthy ? 'bg-success' : 'bg-danger'} text-white`}>
                         <h4 className="mb-0">
                           {result.is_healthy ? (
-                            <><i className="fas fa-check-circle me-2"></i>Healthy Plant</>
+                            <><i className="fas fa-check-circle me-2"></i>{t('healthyPlant')}</>
                           ) : (
-                            <><i className="fas fa-exclamation-circle me-2"></i>Disease Detected</>
+                            <><i className="fas fa-exclamation-circle me-2"></i>{t('diseaseDetected')}</>
                           )}
                         </h4>
                       </div>
                       <div className="card-body">
                         <div className="mb-4">
-                          <h5 className="text-primary">Plant Information</h5>
+                          <h5 className="text-primary">{t('plantInformation')}</h5>
                           <p className="lead">
-                            <strong>Plant:</strong> {result.plant_name}
+                            <strong>{t('plant')}:</strong> {result.plant_name}
                           </p>
                           <p className="lead">
-                            <strong>Status:</strong> {result.disease_name}
+                            <strong>{t('status')}:</strong> {result.disease_name}
                           </p>
                           <p className="text-muted">
-                            <strong>Confidence:</strong> {formatConfidence(result.confidence)}
+                            <strong>{t('confidence')}:</strong> {formatConfidence(result.confidence)}
                           </p>
                         </div>
 
-                        <div className="mb-4">
-                          <h5 className="text-primary">Top Predictions</h5>
-                          <div className="list-group">
-                            {Object.entries(result.top_3_predictions).map(([disease, confidence], index) => (
-                              <div key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                                <span>
-                                  <i className={`fas ${index === 0 ? 'fa-trophy text-warning' : 'fa-chart-line text-secondary'} me-2`}></i>
-                                  {disease.split('___')[1]}
-                                </span>
-                                <span className="badge bg-primary rounded-pill">
-                                  {formatConfidence(confidence)}
-                                </span>
+                        {/* Additional Information from Gemini API */}
+                        {result.additional_info && (
+                          <div className="mb-4">
+                            <h5 className="text-primary">
+                              {result.is_healthy ? (
+                                <><i className="fas fa-leaf me-2"></i>{t('careInformation')}</>
+                              ) : (
+                                <><i className="fas fa-info-circle me-2"></i>{t('diseaseInformation')}</>
+                              )}
+                            </h5>
+                            
+                            {result.additional_info.description && (
+                              <div className="mb-3">
+                                <h6 className="text-secondary">{t('description')}:</h6>
+                                <p className="text-muted">{result.additional_info.description}</p>
                               </div>
-                            ))}
+                            )}
+
+                            {result.is_healthy ? (
+                              // Care tips for healthy plants
+                              result.additional_info.care_tips && result.additional_info.care_tips.length > 0 && (
+                                <div className="mb-3">
+                                  <h6 className="text-secondary">{t('careTips')}:</h6>
+                                  <ul className="list-group list-group-flush">
+                                    {result.additional_info.care_tips.map((tip, index) => (
+                                      <li key={index} className="list-group-item d-flex align-items-start">
+                                        <i className="fas fa-check-circle text-success me-2 mt-1"></i>
+                                        <span>{tip}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )
+                            ) : (
+                              // Remedies for diseased plants
+                              result.additional_info.remedies && result.additional_info.remedies.length > 0 && (
+                                <div className="mb-3">
+                                  <h6 className="text-secondary">{t('treatmentRemedies')}:</h6>
+                                  <ul className="list-group list-group-flush">
+                                    {result.additional_info.remedies.map((remedy, index) => (
+                                      <li key={index} className="list-group-item d-flex align-items-start">
+                                        <i className="fas fa-medkit text-warning me-2 mt-1"></i>
+                                        <span>{remedy}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )
+                            )}
                           </div>
+                        )}
+
+                        {/* Caution messages */}
+                        <div className="alert alert-warning d-flex align-items-center mb-2" role="alert">
+                          <i className="fas fa-exclamation-triangle me-2"></i>
+                          {t('cautionMessage')}
+                        </div>
+                        <div className="alert alert-info d-flex align-items-center" role="alert">
+                          <i className="fas fa-info-circle me-2"></i>
+                          {t('bestForTomatoPotato')}
                         </div>
 
                         {!result.is_healthy && (
                           <div className="alert alert-warning">
                             <i className="fas fa-exclamation-triangle me-2"></i>
-                            This plant appears to be affected by a disease. Please consult with a plant expert for proper treatment.
+                            {t('expertConsultation')}
                           </div>
                         )}
                       </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Header from "../partials/Header";
 import Footer from "../partials/Footer";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 import Moment from "../../plugin/Moment";
 
@@ -12,7 +13,7 @@ import Toast from "../../plugin/Toast";
 
 
 function Index() {
-
+    const { t } = useLanguage();
     const [trendingPosts, setTrendingPosts] = useState([]);
     const [latestPosts, setLatestPosts] = useState([]);
 
@@ -62,7 +63,10 @@ function Index() {
                     <div className="container">
                         <div className="row">
                             <div className="col">
-                                <h2 className="text-start d-block mb-4">Trending Posts 🔥</h2>
+                                <h2 className="text-start d-block mb-4">
+                                    <i className="fas fa-fire me-2"></i>
+                                    {t('trendingPosts')}
+                                </h2>
                             </div>
                         </div>
                     </div>
@@ -111,7 +115,7 @@ function Index() {
                                                 </div>
                                                 <div className="d-flex align-items-center">
                                                     <i className="fas fa-eye me-2"></i>
-                                                    <span className="text-muted">{post?.view} Views</span>
+                                                    <span className="text-muted">{post?.view} {t('views')}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -124,7 +128,7 @@ function Index() {
                                 <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
                                     <button className="page-link me-1" onClick={() => setCurrentPage(currentPage - 1)}>
                                         <i className="ci-arrow-left me-2" />
-                                        Previous
+                                        {t('previous')}
                                     </button>
                                 </li>
                             </ul>
@@ -140,7 +144,7 @@ function Index() {
                             <ul className="pagination">
                                 <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
                                     <button className="page-link ms-1" onClick={() => setCurrentPage(currentPage + 1)}>
-                                        Next
+                                        {t('next')}
                                         <i className="ci-arrow-right ms-3" />
                                     </button>
                                 </li>
@@ -153,7 +157,10 @@ function Index() {
                     <div className="container">
                         <div className="row">
                             <div className="col">
-                                <h2 className="text-start d-block mb-4">Latest Posts 🕒</h2>
+                                <h2 className="text-start d-block mb-4">
+                                    <i className="fas fa-clock me-2"></i>
+                                    {t('latestPosts')}
+                                </h2>
                             </div>
                         </div>
                     </div>
@@ -205,7 +212,7 @@ function Index() {
                                                 </div>
                                                 <div className="d-flex align-items-center">
                                                     <i className="fas fa-eye me-2"></i>
-                                                    <span className="text-muted">{post?.view} Views</span>
+                                                    <span className="text-muted">{post?.view} {t('views')}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -221,7 +228,7 @@ function Index() {
                                         onClick={() => setLatestCurrentPage(latestCurrentPage - 1)}
                                     >
                                         <i className="fas fa-arrow-left me-2" />
-                                        Previous
+                                        {t('previous')}
                                     </button>
                                 </li>
                             </ul>
@@ -246,7 +253,7 @@ function Index() {
                                         className="page-link text-dark fw-bold ms-1 rounded"
                                         onClick={() => setLatestCurrentPage(latestCurrentPage + 1)}
                                     >
-                                        Next
+                                        {t('next')}
                                         <i className="fas fa-arrow-right ms-3" />
                                     </button>
                                 </li>
