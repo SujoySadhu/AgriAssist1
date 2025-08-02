@@ -15,6 +15,252 @@ const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 const BACKEND_URL = "http://localhost:8000";
 const defaultPostImage = "https://placehold.co/600x400?text=No+Image+Available";
 
+// Image Gallery Component
+const ImageGallery = ({ images, title }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    console.log('ImageGallery received images:', images);
+    console.log('ImageGallery title:', title);
+
+    const nextImage = () => {
+        setCurrentIndex((prevIndex) => 
+            prevIndex === images.length - 1 ? 0 : prevIndex + 1
+        );
+    };
+
+    const prevImage = () => {
+        setCurrentIndex((prevIndex) => 
+            prevIndex === 0 ? images.length - 1 : prevIndex - 1
+        );
+    };
+
+    const goToImage = (index) => {
+        setCurrentIndex(index);
+    };
+
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return defaultPostImage;
+        if (imagePath.startsWith('http')) return imagePath;
+        const fullUrl = `${BACKEND_URL}${imagePath}`;
+        console.log('Generated image URL:', fullUrl);
+        return fullUrl;
+    };
+
+    if (!images || images.length === 0) {
+        console.log('No images to display');
+        return null;
+    }
+
+    return (
+        <div className="image-gallery-container mb-4">
+            <div className="gallery-main">
+                <div className="gallery-image-container">
+                    <img
+                        src={getImageUrl(images[currentIndex].image)}
+                        alt={`${title} - Image ${currentIndex + 1}`}
+                        className="gallery-main-image"
+                        onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = defaultPostImage;
+                        }}
+                    />
+                    <div className="gallery-overlay">
+                        <div className="gallery-caption">
+                            {images[currentIndex].caption && (
+                                <p className="caption-text">{images[currentIndex].caption}</p>
+                            )}
+                            <p className="image-counter">{currentIndex + 1} / {images.length}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Navigation Buttons */}
+                {images.length > 1 && (
+                    <>
+                        <button 
+                            className="gallery-nav-btn gallery-prev" 
+                            onClick={prevImage}
+                            aria-label="Previous image"
+                        >
+                            <i className="fas fa-chevron-left"></i>
+                        </button>
+                        <button 
+                            className="gallery-nav-btn gallery-next" 
+                            onClick={nextImage}
+                            aria-label="Next image"
+                        >
+                            <i className="fas fa-chevron-right"></i>
+                        </button>
+                    </>
+                )}
+            </div>
+
+            {/* Thumbnail Navigation */}
+            {images.length > 1 && (
+                <div className="gallery-thumbnails">
+                    {images.map((image, index) => (
+                        <div 
+                            key={index} 
+                            className={`thumbnail-item ${index === currentIndex ? 'active' : ''}`}
+                            onClick={() => goToImage(index)}
+                        >
+                            <img
+                                src={getImageUrl(image.image)}
+                                alt={`Thumbnail ${index + 1}`}
+                                className="thumbnail-image"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = defaultPostImage;
+                                }}
+                            />
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <style>{`
+                .image-gallery-container {
+                    position: relative;
+                    border-radius: 15px;
+                    overflow: hidden;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                }
+
+                .gallery-main {
+                    position: relative;
+                    height: 500px;
+                    background: #f8f9fa;
+                }
+
+                .gallery-image-container {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                }
+
+                .gallery-main-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.3s ease;
+                }
+
+                .gallery-overlay {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+                    color: white;
+                    padding: 20px;
+                }
+
+                .gallery-caption {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .caption-text {
+                    margin: 0;
+                    font-size: 0.9rem;
+                    opacity: 0.9;
+                }
+
+                .image-counter {
+                    margin: 0;
+                    font-size: 0.8rem;
+                    opacity: 0.7;
+                }
+
+                .gallery-nav-btn {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: rgba(255, 255, 255, 0.9);
+                    border: none;
+                    border-radius: 50%;
+                    width: 50px;
+                    height: 50px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    z-index: 10;
+                }
+
+                .gallery-nav-btn:hover {
+                    background: rgba(255, 255, 255, 1);
+                    transform: translateY(-50%) scale(1.1);
+                }
+
+                .gallery-prev {
+                    left: 20px;
+                }
+
+                .gallery-next {
+                    right: 20px;
+                }
+
+                .gallery-thumbnails {
+                    display: flex;
+                    gap: 10px;
+                    padding: 15px;
+                    background: white;
+                    overflow-x: auto;
+                    scrollbar-width: thin;
+                }
+
+                .thumbnail-item {
+                    flex-shrink: 0;
+                    width: 80px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    border: 3px solid transparent;
+                    transition: all 0.3s ease;
+                }
+
+                .thumbnail-item.active {
+                    border-color: #007bff;
+                }
+
+                .thumbnail-item:hover {
+                    transform: scale(1.05);
+                }
+
+                .thumbnail-image {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                @media (max-width: 768px) {
+                    .gallery-main {
+                        height: 300px;
+                    }
+
+                    .gallery-nav-btn {
+                        width: 40px;
+                        height: 40px;
+                    }
+
+                    .gallery-thumbnails {
+                        padding: 10px;
+                    }
+
+                    .thumbnail-item {
+                        width: 60px;
+                        height: 45px;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+};
+
 const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn }) => {
   const [localComment, setLocalComment] = useState(comment);
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -395,6 +641,10 @@ function Detail() {
     try {
       setLoading(true);
       const { data } = await apiInstance.get(`post/detail/${slug}/`);
+      console.log('Fetched post data:', data);
+      console.log('Post images:', data.all_images);
+      console.log('Main image:', data.image);
+      
       // Ensure comments have their replies properly structured
       const processedData = {
         ...data,
@@ -405,6 +655,7 @@ function Detail() {
       };
       setPost(processedData);
     } catch (error) {
+      console.error('Error fetching post:', error);
       Toast("error", "Failed to load post");
     } finally {
       setLoading(false);
@@ -743,7 +994,10 @@ function Detail() {
             </header>
 
             <section className="mb-5">
-              {post.image && (
+              {/* Use ImageGallery if post has multiple images, otherwise show single image */}
+              {post.all_images && post.all_images.length > 0 ? (
+                <ImageGallery images={post.all_images} title={post.title} />
+              ) : post.image ? (
                 <div className="position-relative rounded-3 overflow-hidden mb-4">
                   <img
                     src={post.image.startsWith('http') ? post.image : `${BACKEND_URL}${post.image}`}
@@ -763,7 +1017,7 @@ function Detail() {
                     <small className="d-block text-white-50">Featured Image</small>
                   </div>
                 </div>
-              )}
+              ) : null}
               <div 
                 className="fs-5 line-height-lg" 
                 dangerouslySetInnerHTML={{ __html: post.description }} 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import Index from "./views/core/Index";
 import Detail from "./views/core/Detail";
 import Search from "./views/core/Search";
@@ -28,7 +29,7 @@ import MyAccount from "./views/dashboard/MyAccount";
 function App() {
   
   return (
-    <>
+    <LanguageProvider>
       <BrowserRouter>
         <MainWrapper>
        
@@ -66,9 +67,7 @@ function App() {
           </Routes>
         </MainWrapper>
       </BrowserRouter>
-
-      
-    </>
+    </LanguageProvider>
   );
 }
 

@@ -6,6 +6,7 @@ import Header from "../partials/Header";
 import Footer from "../partials/Footer";
 import apiInstance from "../../utils/axios"
 import Swal from "sweetalert2";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 function Register() {
     const [step, setStep] = useState(1);
@@ -19,6 +20,7 @@ function Register() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
     const handleBioDataChange = (event) => {
         setBioData({
@@ -29,15 +31,15 @@ function Register() {
 
     const validateStep1 = () => {
         if (!bioData.full_name || !bioData.email || !bioData.password || !bioData.password2) {
-            setError("All fields are required");
+            setError(t('allFieldsRequired'));
             return false;
         }
         if (bioData.password !== bioData.password2) {
-            setError("Passwords do not match");
+            setError(t('passwordsDoNotMatch'));
             return false;
         }
         if (bioData.password.length < 8) {
-            setError("Password must be at least 8 characters");
+            setError(t('passwordMinLength'));
             return false;
         }
         return true;
@@ -74,26 +76,26 @@ function Register() {
                     // Show success message
                     Swal.fire({
                         icon: "success",
-                        title: "Account Created Successfully!",
-                        text: "Your account has been verified. Please login to continue."
+                        title: t('accountCreatedSuccess'),
+                        text: t('accountVerifiedMessage')
                     }).then(() => {
                         // Redirect to login with success state
                         navigate("/login", { 
                             state: { 
                                 registrationSuccess: true,
-                                message: "Registration successful! Please login." 
+                                message: t('registrationSuccess')
                             } 
                         });
                     });
                 } else {
-                    throw new Error(verificationResponse.data.error || "Verification failed");
+                    throw new Error(verificationResponse.data.error || t('verificationFailed'));
                 }
             }
         } catch (err) {
             const errorMessage = err.response?.data?.error?.detail || 
                               err.response?.data?.error ||
                               err.message ||
-                              "An error occurred. Please try again.";
+                              t('anErrorOccurred');
             setError(errorMessage);
             
             // If registration error, reset to step 1
@@ -114,11 +116,11 @@ function Register() {
                         <div className="card shadow">
                             <div className="card-body p-6">
                                 <div className="mb-4">
-                                    <h1 className="mb-1 fw-bold">Sign up</h1>
+                                    <h1 className="mb-1 fw-bold">{t('signUp')}</h1>
                                     <span>
-                                        Already have an account?
+                                        {t('alreadyHaveAccount')}
                                         <Link to="/login/" className="ms-1">
-                                            Sign In
+                                            {t('signIn')}
                                         </Link>
                                     </span>
                                 </div>
@@ -132,7 +134,7 @@ function Register() {
                                                 className="btn btn-link p-0 ms-2"
                                                 onClick={() => setStep(1)}
                                             >
-                                                Resend OTP
+                                                {t('resendOTP')}
                                             </button>
                                         )}
                                     </div>
@@ -143,7 +145,7 @@ function Register() {
                                         <>
                                             <div className="mb-3">
                                                 <label htmlFor="full_name" className="form-label">
-                                                    Full Name
+                                                    {t('fullName')}
                                                 </label>
                                                 <input 
                                                     type="text" 
@@ -158,7 +160,7 @@ function Register() {
                                             </div>
                                             <div className="mb-3">
                                                 <label htmlFor="email" className="form-label">
-                                                    Email Address
+                                                    {t('email')}
                                                 </label>
                                                 <input 
                                                     type="email" 
@@ -167,13 +169,13 @@ function Register() {
                                                     id="email" 
                                                     className="form-control" 
                                                     name="email" 
-                                                    placeholder="johndoe@gmail.com" 
+                                                    placeholder="john@example.com" 
                                                     required 
                                                 />
                                             </div>
                                             <div className="mb-3">
                                                 <label htmlFor="password" className="form-label">
-                                                    Password
+                                                    {t('password')}
                                                 </label>
                                                 <input 
                                                     type="password" 
@@ -182,13 +184,13 @@ function Register() {
                                                     id="password" 
                                                     className="form-control" 
                                                     name="password" 
-                                                    placeholder="**************" 
+                                                    placeholder="Enter your password" 
                                                     required 
                                                 />
                                             </div>
                                             <div className="mb-3">
                                                 <label htmlFor="password2" className="form-label">
-                                                    Confirm Password
+                                                    {t('confirmPassword')}
                                                 </label>
                                                 <input 
                                                     type="password" 
@@ -197,51 +199,56 @@ function Register() {
                                                     id="password2" 
                                                     className="form-control" 
                                                     name="password2" 
-                                                    placeholder="**************" 
+                                                    placeholder="Confirm your password" 
                                                     required 
                                                 />
                                             </div>
+                                            <div className="d-grid">
+                                                <button 
+                                                    type="submit" 
+                                                    className="btn btn-primary" 
+                                                    disabled={isLoading}
+                                                >
+                                                    {isLoading ? t('loading') : t('signUp')}
+                                                </button>
+                                            </div>
                                         </>
                                     ) : (
-                                        <div className="mb-3">
-                                            <label htmlFor="otp" className="form-label">
-                                                Verification OTP
-                                            </label>
-                                            <input 
-                                                type="text" 
-                                                value={otp}
-                                                onChange={(e) => setOtp(e.target.value)}
-                                                className="form-control"
-                                                placeholder="Enter OTP sent to your email"
-                                                required
-                                            />
-                                            <small className="text-muted">
-                                                Check your email for the verification code
-                                            </small>
-                                        </div>
+                                        <>
+                                            <div className="mb-3">
+                                                <label htmlFor="otp" className="form-label">
+                                                    {t('enterOTP')}
+                                                </label>
+                                                <input 
+                                                    type="text" 
+                                                    onChange={(e) => setOtp(e.target.value)} 
+                                                    value={otp} 
+                                                    id="otp" 
+                                                    className="form-control" 
+                                                    placeholder="Enter OTP" 
+                                                    required 
+                                                />
+                                            </div>
+                                            <div className="d-grid">
+                                                <button 
+                                                    type="submit" 
+                                                    className="btn btn-primary" 
+                                                    disabled={isLoading}
+                                                >
+                                                    {isLoading ? t('loading') : t('verifyEmail')}
+                                                </button>
+                                            </div>
+                                            <div className="text-center mt-3">
+                                                <button 
+                                                    type="button" 
+                                                    className="btn btn-link" 
+                                                    onClick={() => setStep(1)}
+                                                >
+                                                    {t('backToLogin')}
+                                                </button>
+                                            </div>
+                                        </>
                                     )}
-
-                                    <div className="d-grid">
-                                        <button 
-                                            className="btn btn-primary w-100" 
-                                            type="submit" 
-                                            disabled={isLoading}
-                                        >
-                                            {isLoading ? (
-                                                <>
-                                                    <span className="mr-2">Processing...</span>
-                                                    <i className="fas fa-spinner fa-spin" />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span className="mr-2">
-                                                        {step === 1 ? 'Sign Up' : 'Verify Email'}
-                                                    </span>
-                                                    <i className={step === 1 ? "fas fa-user-plus" : "fas fa-check-circle"} />
-                                                </>
-                                            )}
-                                        </button>
-                                    </div>
                                 </form>
                             </div>
                         </div>

@@ -26,6 +26,9 @@ const useAuthStore = create((set, get) => ({
 
     // Define a function 'isLoggedIn' that checks if 'allUserData' is not null.
     isLoggedIn: () => get().allUserData !== null,
+
+    // Define a function 'logout' that clears the user data.
+    logout: () => set({ allUserData: null, loading: false }),
 }));
 
 // Conditionally attach the DevTools only in a development environment.

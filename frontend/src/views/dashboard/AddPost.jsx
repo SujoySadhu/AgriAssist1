@@ -11,6 +11,8 @@ import Swal from "sweetalert2";
 function AddPost() {
     const [post, setCreatePost] = useState({ image: "", title: "", description: "", category: parseInt(""), tags: "", status: "" });
     const [imagePreview, setImagePreview] = useState("");
+    const [additionalImages, setAdditionalImages] = useState([]);
+    const [additionalImagePreviews, setAdditionalImagePreviews] = useState([]);
     const [categoryList, setCategoryList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const userId = useUserData()?.user_id;
@@ -56,6 +58,33 @@ function AddPost() {
         }
     };
 
+    const handleAdditionalImagesChange = (event) => {
+        const selectedFiles = Array.from(event.target.files);
+        if (selectedFiles.length > 0) {
+            setAdditionalImages(selectedFiles);
+            
+            // Create previews for all selected images
+            const previews = [];
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    previews[index] = reader.result;
+                    if (previews.length === selectedFiles.length) {
+                        setAdditionalImagePreviews([...previews]);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removeAdditionalImage = (index) => {
+        const newImages = additionalImages.filter((_, i) => i !== index);
+        const newPreviews = additionalImagePreviews.filter((_, i) => i !== index);
+        setAdditionalImages(newImages);
+        setAdditionalImagePreviews(newPreviews);
+    };
+
     const handleCreatePost = async (e) => {
         setIsLoading(true);
         e.preventDefault();
@@ -74,6 +103,11 @@ function AddPost() {
         formdata.append("tags", post.tags);
         formdata.append("category", post.category);
         formdata.append("status", post.status);
+
+        // Append additional images
+        additionalImages.forEach((image, index) => {
+            formdata.append("additional_images", image);
+        });
 
         try {
             const response = await apiInstance.post("author/dashboard/post-create/", formdata, {
@@ -161,6 +195,66 @@ function AddPost() {
                                                     type="file" 
                                                 />
                                             </div>
+
+                                            {/* Additional Images Section */}
+                                            <div className="mb-3">
+                                                <label htmlFor="additionalImages" className="form-label">
+                                                    Additional Images (Optional)
+                                                </label>
+                                                <div className="d-flex gap-2 align-items-center">
+                                                    <input 
+                                                        onChange={handleAdditionalImagesChange} 
+                                                        name="additionalImages" 
+                                                        id="additionalImages" 
+                                                        className="form-control" 
+                                                        type="file" 
+                                                        multiple
+                                                        accept="image/*"
+                                                        style={{ display: 'none' }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-outline-primary"
+                                                        onClick={() => document.getElementById('additionalImages').click()}
+                                                    >
+                                                        <i className="fas fa-plus me-2"></i>
+                                                        Add Images
+                                                    </button>
+                                                    <span className="text-muted">
+                                                        {additionalImages.length > 0 ? `${additionalImages.length} image(s) selected` : 'No images selected'}
+                                                    </span>
+                                                </div>
+                                                <small className="text-muted">You can select multiple images. These will be displayed in a gallery on the post detail page.</small>
+                                            </div>
+
+                                            {/* Additional Images Preview */}
+                                            {additionalImagePreviews.length > 0 && (
+                                                <div className="mb-3">
+                                                    <label className="form-label">Additional Images Preview</label>
+                                                    <div className="row">
+                                                        {additionalImagePreviews.map((preview, index) => (
+                                                            <div key={index} className="col-md-3 col-sm-4 col-6 mb-2">
+                                                                <div className="position-relative">
+                                                                    <img 
+                                                                        src={preview} 
+                                                                        alt={`Additional image ${index + 1}`}
+                                                                        className="img-fluid rounded"
+                                                                        style={{ height: "120px", objectFit: "cover", width: "100%" }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn btn-danger btn-sm position-absolute top-0 end-0"
+                                                                        style={{ margin: "2px" }}
+                                                                        onClick={() => removeAdditionalImage(index)}
+                                                                    >
+                                                                        <i className="fas fa-times"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <div className="mb-3">
                                                 <label className="form-label">Title</label>

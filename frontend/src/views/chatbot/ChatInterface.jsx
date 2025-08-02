@@ -8,8 +8,74 @@ const ChatInterface = () => {
   const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPrompts, setShowPrompts] = useState(true);
+  const [showQuickQuestions, setShowQuickQuestions] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Custom Bangla prompts
+  const banglaPrompts = [
+    {
+      id: 1,
+      text: "কৃষি ঋণের জন্য কী কী শর্ত পূরণ করতে হবে?",
+      category: "ঋণ ও অর্থায়ন"
+    },
+    {
+      id: 2,
+      text: "ধান চাষের জন্য সেরা সময় কখন?",
+      category: "ফসল চাষ"
+    },
+    {
+      id: 3,
+      text: "জৈব সার ব্যবহারের উপকারিতা কী?",
+      category: "সার ও রাসায়নিক"
+    },
+    {
+      id: 4,
+      text: "কৃষি বীমার জন্য আবেদন কীভাবে করতে হয়?",
+      category: "বীমা ও নিরাপত্তা"
+    },
+    {
+      id: 5,
+      text: "টমেটো চাষে কী কী রোগ হয়?",
+      category: "রোগ ও পোকামাকড়"
+    },
+    {
+      id: 6,
+      text: "কৃষি যন্ত্রপাতি কেনার জন্য সরকারি সহায়তা কী?",
+      category: "যন্ত্রপাতি ও সরঞ্জাম"
+    },
+    {
+      id: 7,
+      text: "জলবায়ু পরিবর্তনের প্রভাব কৃষির উপর কী?",
+      category: "জলবায়ু ও পরিবেশ"
+    },
+    {
+      id: 8,
+      text: "কৃষি পণ্য বিক্রির জন্য বাজার কোথায়?",
+      category: "বাজার ও বিক্রয়"
+    },
+    {
+      id: 9,
+      text: "আলু চাষের জন্য কী কী বিষয় খেয়াল রাখতে হয়?",
+      category: "ফসল চাষ"
+    },
+    {
+      id: 10,
+      text: "কৃষি জমির রেকর্ড কীভাবে দেখতে হয়?",
+      category: "জমি ও নথি"
+    },
+    {
+      id: 11,
+      text: "সেচের জন্য কী কী পদ্ধতি আছে?",
+      category: "সেচ ও পানি ব্যবস্থাপনা"
+    },
+    {
+      id: 12,
+      text: "কৃষি গবেষণা কেন্দ্রে কী কী সুবিধা পাওয়া যায়?",
+      category: "গবেষণা ও প্রশিক্ষণ"
+    }
+  ];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,6 +89,19 @@ const ChatInterface = () => {
     // Focus input on component mount
     inputRef.current?.focus();
   }, []);
+
+  const handlePromptClick = (promptText) => {
+    setMessage(promptText);
+    setShowPrompts(false);
+    inputRef.current?.focus();
+  };
+
+  const resetConversation = () => {
+    setConversation([]);
+    setShowPrompts(true);
+    setMessage('');
+    inputRef.current?.focus();
+  };
 
   const formatBotResponse = (text) => {
     // Split text into paragraphs
@@ -103,6 +182,7 @@ const ChatInterface = () => {
       };
 
       setConversation(prev => [...prev, userMessage]);
+      setShowPrompts(false); // Hide prompts after first message
 
       const response = await axios.post('http://127.0.0.1:8000/api/v1/chatbot/ask/', {
         question: message
@@ -142,19 +222,45 @@ const ChatInterface = () => {
           <h1>🌿 AgriAssist</h1>
           <p>Ask about agricultural regulations and policies</p>
         </div>
+        {conversation.length > 0 && (
+          <button className="reset-button" onClick={resetConversation}>
+            <i className="bi bi-arrow-clockwise"></i>
+            <span>New Chat</span>
+          </button>
+        )}
       </div>
 
       <div className="chat-messages">
         {conversation.length === 0 ? (
-          <div className="welcome-message">
-            <h2>Welcome to AgriAssist! 👋</h2>
-            <p>I'm here to help you with agricultural information. Feel free to ask any questions about:</p>
-            <ul>
-              <li>Agricultural regulations</li>
-              <li>Farming practices</li>
-              
-              
-            </ul>
+          <div className="welcome-section">
+            <div className="welcome-message">
+              <h2>স্বাগতম AgriAssist! 👋</h2>
+              <p>আমি আপনাকে কৃষি সম্পর্কিত তথ্য দিতে সাহায্য করব। আপনি নিম্নলিখিত বিষয়ে প্রশ্ন করতে পারেন:</p>
+              <ul>
+                <li>কৃষি নিয়ন্ত্রণ ও নীতি</li>
+                <li>চাষাবাদ পদ্ধতি</li>
+                <li>ঋণ ও অর্থায়ন</li>
+                <li>রোগ ও পোকামাকড় নিয়ন্ত্রণ</li>
+              </ul>
+            </div>
+            
+            {/* Custom Bangla Prompts Section */}
+            <div className="prompts-section">
+              <h3>💡 দ্রুত প্রশ্ন (Quick Questions)</h3>
+              <div className="prompts-grid">
+                {banglaPrompts.map((prompt) => (
+                  <button
+                    key={prompt.id}
+                    className="prompt-button"
+                    onClick={() => handlePromptClick(prompt.text)}
+                    disabled={isProcessing}
+                  >
+                    <div className="prompt-category">{prompt.category}</div>
+                    <div className="prompt-text">{prompt.text}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           conversation.map((msg, index) => (
@@ -188,13 +294,46 @@ const ChatInterface = () => {
       </div>
 
       <div className="chat-input-container">
+        {conversation.length > 0 && (
+          <div className="quick-questions-section">
+            <button 
+              className="quick-questions-toggle"
+              onClick={() => setShowQuickQuestions(!showQuickQuestions)}
+              disabled={isProcessing}
+            >
+              <i className="bi bi-lightning-charge"></i>
+              দ্রুত প্রশ্ন (Quick Questions)
+              <i className={`bi bi-chevron-${showQuickQuestions ? 'up' : 'down'}`}></i>
+            </button>
+            {showQuickQuestions && (
+              <div className="quick-questions-dropdown">
+                <div className="quick-questions-grid">
+                  {banglaPrompts.slice(0, 6).map((prompt) => (
+                    <button
+                      key={prompt.id}
+                      className="quick-prompt-button"
+                      onClick={() => {
+                        handlePromptClick(prompt.text);
+                        setShowQuickQuestions(false);
+                      }}
+                      disabled={isProcessing}
+                    >
+                      <div className="quick-prompt-category">{prompt.category}</div>
+                      <div className="quick-prompt-text">{prompt.text}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="chat-input-form">
           <input
             ref={inputRef}
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="💬 Type your question..."
+            placeholder="💬 আপনার প্রশ্ন লিখুন..."
             disabled={isProcessing}
             className="chat-input"
           />
@@ -271,6 +410,12 @@ const ChatInterface = () => {
           gap: 1rem;
         }
 
+        .welcome-section {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+        }
+
         .welcome-message {
           text-align: center;
           padding: 2rem;
@@ -278,7 +423,7 @@ const ChatInterface = () => {
           border-radius: 1rem;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
           max-width: 600px;
-          margin: 2rem auto;
+          margin: 0 auto;
         }
 
         .welcome-message h2 {
@@ -290,6 +435,69 @@ const ChatInterface = () => {
           text-align: left;
           display: inline-block;
           margin-top: 1rem;
+        }
+
+        .prompts-section {
+          background: white;
+          border-radius: 1rem;
+          padding: 2rem;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+          max-width: 1000px;
+          margin: 0 auto;
+          width: 100%;
+        }
+
+        .prompts-section h3 {
+          color: #06beb6;
+          margin-bottom: 1.5rem;
+          text-align: center;
+          font-size: 1.3rem;
+        }
+
+        .prompts-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 1rem;
+        }
+
+        .prompt-button {
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          border: 2px solid #e2e8f0;
+          border-radius: 1rem;
+          padding: 1.5rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: left;
+          font-family: inherit;
+        }
+
+        .prompt-button:hover {
+          border-color: #06beb6;
+          background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(6, 190, 182, 0.15);
+        }
+
+        .prompt-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .prompt-category {
+          font-size: 0.8rem;
+          color: #06beb6;
+          font-weight: 600;
+          margin-bottom: 0.5rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .prompt-text {
+          font-size: 1rem;
+          color: #1f2937;
+          line-height: 1.4;
+          font-weight: 500;
         }
 
         .message-wrapper {
@@ -347,6 +555,107 @@ const ChatInterface = () => {
           background: white;
           padding: 1rem;
           border-top: 1px solid #e5e7eb;
+          position: relative; /* Added for quick questions dropdown positioning */
+        }
+
+        .quick-questions-section {
+          margin-bottom: 1rem;
+          padding: 0.75rem 1rem;
+          background: linear-gradient(135deg, #f0fdfa 0%, #e0f2f7 100%);
+          border: 1px solid #ccfbf1;
+          border-radius: 0.75rem;
+          position: relative;
+        }
+
+        .quick-questions-toggle {
+          background: none;
+          border: none;
+          color: #06beb6;
+          font-size: 0.9rem;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          width: 100%;
+          justify-content: center;
+        }
+
+        .quick-questions-toggle:hover {
+          background: rgba(6, 190, 182, 0.1);
+          color: #06beb6;
+        }
+
+        .quick-questions-toggle:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .quick-questions-dropdown {
+          position: absolute;
+          bottom: 100%; /* Position above the input */
+          left: 0;
+          right: 0;
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 0.75rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          z-index: 10;
+          max-height: 300px;
+          overflow-y: auto;
+          margin-bottom: 0.5rem;
+        }
+
+        .quick-questions-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 0.5rem;
+          padding: 1rem;
+        }
+
+        .quick-prompt-button {
+          background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          border: 1px solid #e2e8f0;
+          border-radius: 0.75rem;
+          padding: 0.75rem 1rem;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: left;
+          font-family: inherit;
+          display: flex;
+          flex-direction: column;
+          gap: 0.3rem;
+        }
+
+        .quick-prompt-button:hover {
+          border-color: #06beb6;
+          background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(6, 190, 182, 0.1);
+        }
+
+        .quick-prompt-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .quick-prompt-category {
+          font-size: 0.7rem;
+          color: #06beb6;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .quick-prompt-text {
+          font-size: 0.9rem;
+          color: #1f2937;
+          line-height: 1.3;
+          font-weight: 500;
         }
 
         .chat-input-form {
@@ -489,6 +798,34 @@ const ChatInterface = () => {
           font-size: 1.1rem;
         }
 
+        .reset-button {
+          position: absolute;
+          right: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 1px solid white;
+          border-radius: 1.5rem;
+          padding: 0.5rem 1rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: all 0.3s ease;
+          z-index: 10;
+        }
+
+        .reset-button:hover {
+          background: rgba(255, 255, 255, 0.3);
+          color: white;
+        }
+
+        .reset-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
           .chat-messages {
             padding: 1rem;
@@ -520,6 +857,30 @@ const ChatInterface = () => {
 
           .response-paragraph {
             font-size: 0.95rem;
+          }
+
+          .prompts-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .prompt-button {
+            padding: 1rem;
+          }
+
+          .prompts-section {
+            padding: 1.5rem;
+          }
+
+          .quick-questions-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .quick-prompt-button {
+            padding: 0.75rem 1rem;
+          }
+
+          .quick-questions-section {
+            padding: 0.3rem 0.7rem;
           }
         }
       `}</style>

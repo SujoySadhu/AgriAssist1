@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../../utils/auth";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -10,6 +11,7 @@ const Login = () => {
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState("");
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -38,7 +40,7 @@ const Login = () => {
             <form onSubmit={handleSubmit}>
                 {/* Email */}
                 <div className="mb-3">
-                    <label htmlFor="email" className="form-label">Email address</label>
+                    <label htmlFor="email" className="form-label">{t('email')}</label>
                     <input
                         type="email"
                         className={`form-control ${errors.email ? "is-invalid" : ""}`}
@@ -52,7 +54,7 @@ const Login = () => {
 
                 {/* Password */}
                 <div className="mb-1">
-                    <label htmlFor="password" className="form-label">Password</label>
+                    <label htmlFor="password" className="form-label">{t('password')}</label>
                     <div className="input-group">
                         <input
                             type={showPassword ? "text" : "password"}
@@ -83,17 +85,17 @@ const Login = () => {
                             checked={rememberMe}
                             onChange={(e) => setRememberMe(e.target.checked)}
                         />
-                        <label className="form-check-label" htmlFor="rememberMe">Remember me</label>
+                        <label className="form-check-label" htmlFor="rememberMe">{t('rememberMe')}</label>
                     </div>
-                    <Link to="/forgot-password/" style={{ color: '#40916C', textDecoration: 'underline', fontWeight: 500, fontSize: '0.98rem' }}>Forgot Password?</Link>
+                    <Link to="/forgot-password/" style={{ color: '#40916C', textDecoration: 'underline', fontWeight: 500, fontSize: '0.98rem' }}>{t('forgotPassword')}</Link>
                 </div>
 
                 {/* Submit */}
-                <button type="submit" className="btn btn-primary w-100">Login</button>
+                <button type="submit" className="btn btn-primary w-100">{t('signIn')}</button>
             </form>
             <div className="mt-3 text-center">
-                <span>Don't have an account? </span>
-                <a href="/register" style={{ color: '#40916C', textDecoration: 'underline', fontWeight: 500 }}>Sign up</a>
+                <span>{t('dontHaveAccount')} </span>
+                <a href="/register" style={{ color: '#40916C', textDecoration: 'underline', fontWeight: 500 }}>{t('signUp')}</a>
             </div>
         </div>
     );
