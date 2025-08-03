@@ -22,109 +22,8 @@ const Toast = Swal.mixin({
     timerProgressBar: true,
 });
 
-// Function to handle user login
-// export const login = async (email, password) => {
-//     try {
-//         // Making a POST request to obtain user tokens
-//         const { data, status } = await axios.post("user/token/", {
-//             email,
-//             password,
-//         });
-
-//         // If the request is successful (status code 200), set authentication user and display success toast
-//         if (status === 200) {
-//             setAuthUser(data.access, data.refresh);
-
-//             // Displaying a success toast notification
-//             Toast.fire({
-//                 icon: "success",
-//                 title: "Signed in successfully",
-//             });
-//         }
-
-//         // Returning data and error information
-//         return { data, error: null };
-//     } catch (error) {
-//         // Handling errors and returning data and error information
-//         return {
-//             data: null,
-//             error: error.response.data?.detail || "Something went wrong",
-//         };
-//     }
-// };
-// export const login = async (email, password) => {
-//     try {
-//         const { data, status } = await axios.post("user/token/", { email, password });
-        
-//         if (status === 200) {
-//             setAuthUser(data.access, data.refresh);
-//             Toast.fire({ icon: "success", title: "Signed in successfully" });
-//             return { data, error: null };
-//         }
-//     } catch (error) {
-//         let errorMessage = "Something went wrong";
-//         const responseData = error.response?.data;
-
-//         // Handle different error formats from Django
-//         if (responseData) {
-//             errorMessage = 
-//                 responseData.detail || // For simple messages
-//                 responseData.non_field_errors?.[0] || // For form-wide errors
-//                 Object.values(responseData).flat().join(" ") || // For field-specific errors
-//                 "Invalid credentials";
-//         }
-
-//         Toast.fire({ icon: "error", title: errorMessage });
-//         return { data: null, error: errorMessage };
-//     }
-// };
-
-
-//  login function
-// export const login = async (email, password) => {
-//     try {
-//         const { data, status } = await axios.post("user/token/", { email, password });
-        
-//         if (status === 200) {
-//             setAuthUser(data.access, data.refresh);
-//             Toast.fire({ 
-//                 icon: "success", 
-//                 title: "Signed in successfully" 
-//             });
-//             return { success: true, error: null };
-//         }
-//     } catch (error) {
-//         let errorMessage = "Something went wrong";
-//         const response = error.response;
-        
-//         if (!response) {
-//             errorMessage = "Network error - please check your connection";
-//         } else {
-//             const data = response.data;
-            
-//             // Handle different Django error formats
-//             if (data.detail) {
-//                 errorMessage = data.detail;
-//             } else if (data.non_field_errors) {
-//                 errorMessage = data.non_field_errors[0];
-//             } else {
-//                 // Handle field-specific errors
-//                 const fieldErrors = [];
-//                 for (const [field, messages] of Object.entries(data)) {
-//                     fieldErrors.push(`${field}: ${messages.join(" ")}`);
-//                 }
-//                 errorMessage = fieldErrors.join(". ") || "Invalid credentials";
-//             }
-//         }
-
-//         return { 
-//             success: false, 
-//             error: errorMessage,
-//             fieldErrors: error.response?.data || {}
-//         };
-//     }
-// };
-export const login = async (email, password) => {
+// Enhanced login function with better error handling
+export const login = async (email, password, rememberMe = false) => {
     try {
         const { data, status } = await axios.post("user/token/", { email, password });
 
@@ -150,9 +49,20 @@ export const login = async (email, password) => {
                 }
             } else if (data.non_field_errors) {
                 errorMessage = data.non_field_errors[0];
+            } else if (data.email) {
+                fieldErrors.email = data.email.join(" ");
+                errorMessage = "Please fix the errors below";
+            } else if (data.password) {
+                fieldErrors.password = data.password.join(" ");
+                errorMessage = "Please fix the errors below";
             } else {
+                // Handle field-specific errors
                 for (const [field, messages] of Object.entries(data)) {
-                    fieldErrors[field] = messages.join(" ");
+                    if (Array.isArray(messages)) {
+                        fieldErrors[field] = messages.join(" ");
+                    } else {
+                        fieldErrors[field] = messages;
+                    }
                 }
                 errorMessage = Object.values(fieldErrors)[0] || "Invalid credentials";
             }
@@ -168,38 +78,7 @@ export const login = async (email, password) => {
     }
 };
 
-
-
-// Function to handle user registration
-// export const register = async (full_name, email, password, password2) => {
-//     try {
-//         // Making a POST request to register a new user
-//         const { data } = await axios.post("user/register/", {
-//             full_name,
-//             email,
-//             password,
-//             password2,
-//         });
-
-//         // Logging in the newly registered user and displaying success toast
-//         await login(email, password);
-
-//         // Displaying a success toast notification
-//         Toast.fire({
-//             icon: "success",
-//             title: "Signed Up Successfully",
-//         });
-
-//         // Returning data and error information
-//         return { data, error: null };
-//     } catch (error) {
-//         // Handling errors and returning data and error information
-//         return {
-//             data: null,
-//             error: error.response.data || "Something went wrong",
-//         };
-//     }
-// };
+// Enhanced register function with better error handling
 export const register = async (full_name, email, password, password2) => {
     try {
         const { data } = await axios.post("user/register/", {
@@ -209,15 +88,52 @@ export const register = async (full_name, email, password, password2) => {
             password2,
         });
 
-        // Don't login automatically here - wait for verification
-        return { data, error: null };
+        return { data, error: null, fieldErrors: {} };
     } catch (error) {
-        const errorMessage = error.response?.data?.error?.detail || 
-                          error.response?.data?.error ||
-                          "Registration failed. Please try again.";
+        const responseData = error.response?.data;
+        let errorMessage = "Registration failed. Please try again.";
+        const fieldErrors = {};
+
+        if (responseData) {
+            if (responseData.error?.detail) {
+                if (typeof responseData.error.detail === 'object') {
+                    // Handle field-specific errors
+                    Object.assign(fieldErrors, responseData.error.detail);
+                    errorMessage = "Please fix the errors below";
+                } else {
+                    errorMessage = responseData.error.detail;
+                }
+            } else if (responseData.error) {
+                errorMessage = responseData.error;
+            } else if (responseData.email) {
+                fieldErrors.email = responseData.email.join(" ");
+                errorMessage = "Please fix the errors below";
+            } else if (responseData.password) {
+                fieldErrors.password = responseData.password.join(" ");
+                errorMessage = "Please fix the errors below";
+            } else if (responseData.password2) {
+                fieldErrors.password2 = responseData.password2.join(" ");
+                errorMessage = "Please fix the errors below";
+            } else if (responseData.full_name) {
+                fieldErrors.full_name = responseData.full_name.join(" ");
+                errorMessage = "Please fix the errors below";
+            } else {
+                // Handle other field errors
+                for (const [field, messages] of Object.entries(responseData)) {
+                    if (Array.isArray(messages)) {
+                        fieldErrors[field] = messages.join(" ");
+                    } else {
+                        fieldErrors[field] = messages;
+                    }
+                }
+                errorMessage = Object.values(fieldErrors)[0] || "Registration failed";
+            }
+        }
+
         return {
             data: null,
             error: errorMessage,
+            fieldErrors,
         };
     }
 };
@@ -255,33 +171,6 @@ export const setUser = async () => {
         setAuthUser(accessToken, refreshToken);
     }
 };
-//Update the logout function
-// export const logout = () => {
-//     // Call store's logout action
-//     useAuthStore.getState().logout();
-    
-//     // Show toast notification
-//     Toast.fire({
-//       icon: "success",
-//       title: "You have been logged out.",
-//     });
-//   };
-  
-  // Update the setAuthUser function
-//   export const setAuthUser = (access_token, refresh_token) => {
-//     Cookies.set("access_token", access_token, {
-//       expires: 1,
-//       secure: true,
-//     });
-  
-//     Cookies.set("refresh_token", refresh_token, {
-//       expires: 7,
-//       secure: true,
-//     });
-  
-//     const user = jwt_decode(access_token) ?? null;
-//     useAuthStore.getState().login(user); // Use store's login action
-//   };
 
 // Function to set the authenticated user and update user state
 export const setAuthUser = (access_token, refresh_token) => {
@@ -327,5 +216,76 @@ export const isAccessTokenExpired = (accessToken) => {
     } catch (err) {
         // Returning true if the token is invalid or expired
         return true;
+    }
+};
+
+// Google OAuth functions
+export const handleGoogleLogin = async (credential) => {
+    try {
+        const response = await axios.post("user/google-login/", {
+            credential: credential
+        });
+
+        if (response.data.success) {
+            setAuthUser(response.data.access, response.data.refresh);
+            Toast.fire({ icon: "success", title: "Google login successful!" });
+            return { success: true, error: null, fieldErrors: {} };
+        } else {
+            return { 
+                success: false, 
+                error: response.data.error || "Google login failed", 
+                fieldErrors: {} 
+            };
+        }
+    } catch (error) {
+        const responseData = error.response?.data;
+        let errorMessage = "Google login failed. Please try again.";
+        const fieldErrors = {};
+
+        if (responseData?.error?.detail) {
+            errorMessage = responseData.error.detail;
+        } else if (responseData?.error) {
+            errorMessage = responseData.error;
+        }
+
+        return {
+            success: false,
+            error: errorMessage,
+            fieldErrors,
+        };
+    }
+};
+
+export const handleGoogleRegister = async (credential) => {
+    try {
+        const response = await axios.post("user/google-register/", {
+            credential: credential
+        });
+
+        if (response.data.success) {
+            return { success: true, error: null, fieldErrors: {} };
+        } else {
+            return { 
+                success: false, 
+                error: response.data.error || "Google registration failed", 
+                fieldErrors: {} 
+            };
+        }
+    } catch (error) {
+        const responseData = error.response?.data;
+        let errorMessage = "Google registration failed. Please try again.";
+        const fieldErrors = {};
+
+        if (responseData?.error?.detail) {
+            errorMessage = responseData.error.detail;
+        } else if (responseData?.error) {
+            errorMessage = responseData.error;
+        }
+
+        return {
+            success: false,
+            error: errorMessage,
+            fieldErrors,
+        };
     }
 };

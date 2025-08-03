@@ -95,13 +95,19 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         # Check if email exists in either User or PendingUser
         if api_models.User.objects.filter(email=attrs['email']).exists():
-            raise serializers.ValidationError({"email": "Email already exists."})
+            raise serializers.ValidationError({
+                "email": ["An account with this email already exists. Please login instead."]
+            })
         
         if api_models.PendingUser.objects.filter(email=attrs['email']).exists():
-            raise serializers.ValidationError({"email": "Verification already pending for this email."})
+            raise serializers.ValidationError({
+                "email": ["Verification already pending for this email. Please check your email or try again later."]
+            })
 
         if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
+            raise serializers.ValidationError({
+                "password2": ["Password fields didn't match."]
+            })
 
         return attrs
 
@@ -268,6 +274,15 @@ class CommentSerializer(serializers.ModelSerializer):
                  'is_liked', 'likes_count', 'parent', 'depth']
         read_only_fields = ['user', 'date']
 
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        if request and request.method in ['PUT', 'PATCH']:
+            # Make post field optional for updates
+            if 'post' in fields:
+                fields['post'].required = False
+        return fields
+
     def get_user_profile(self, obj):
         try:
             profile = api_models.Profile.objects.get(user=obj.user)
@@ -306,8 +321,9 @@ class CommentSerializer(serializers.ModelSerializer):
         return obj.likes.count()
 
     def validate(self, data):
-        # Ensure post_id is provided when creating a comment
-        if not data.get('post'):
+        # Ensure post_id is provided when creating a comment, not when updating
+        request = self.context.get('request')
+        if request and request.method == 'POST' and not data.get('post'):
             raise serializers.ValidationError("post_id is required")
         return data
 

@@ -105,7 +105,7 @@ function Profile() {
                                             <div className="d-lg-flex align-items-center justify-content-between">
                                                 <div className="d-flex align-items-center mb-4 mb-lg-0">
                                                     <img 
-                                                        src={imagePreview || profileData?.image} 
+                                                        src={imagePreview || profileData?.image || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23CBD5E0'%3E%3Ccircle cx='50' cy='35' r='20'/%3E%3Cpath d='M20 85c0-16.6 13.4-30 30-30s30 13.4 30 30'/%3E%3C/svg%3E"} 
                                                         id="img-uploaded" 
                                                         className="avatar-xl rounded-circle" 
                                                         alt="avatar" 
@@ -114,7 +114,11 @@ function Profile() {
                                                             height: "100px", 
                                                             borderRadius: "50%", 
                                                             objectFit: "cover" 
-                                                        }} 
+                                                        }}
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%23CBD5E0'%3E%3Ccircle cx='50' cy='35' r='20'/%3E%3Cpath d='M20 85c0-16.6 13.4-30 30-30s30 13.4 30 30'/%3E%3C/svg%3E";
+                                                        }}
                                                     />
                                                     <div className="ms-3">
                                                         <h4 className="mb-0">Your avatar</h4>

@@ -12,6 +12,10 @@ urlpatterns = [
     path('user/password-reset-request/', api_views.PasswordResetRequestView.as_view(),name='password-reset-request'),
     path('user/password-reset-confirm/', api_views.PasswordResetConfirmView.as_view(),name='password-reset-confirm'),
     path('user/validate-otp/', api_views.ValidateOTPView.as_view(), name='validate-otp'),
+    
+    # Google OAuth Endpoints
+    path('user/google-login/', api_views.GoogleLoginView.as_view(), name='google-login'),
+    path('user/google-register/', api_views.GoogleRegisterView.as_view(), name='google-register'),
 
     # Post Endpoints
     path('post/category/list/', api_views.CategoryListAPIView.as_view()),
