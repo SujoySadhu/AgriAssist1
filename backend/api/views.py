@@ -37,6 +37,7 @@ import numpy as np
 from PIL import Image
 import io
 import os
+import requests
 
 # Custom Imports
 from api import serializer as api_serializer
@@ -63,6 +64,134 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
     # It sets the serializer class to be used with this view.
     serializer_class = api_serializer.RegisterSerializer
+
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        try:
+            credential = request.data.get('credential')
+            if not credential:
+                return Response({
+                    'success': False,
+                    'error': 'Google credential is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify the Google token
+            google_response = requests.get(
+                f'https://oauth2.googleapis.com/tokeninfo?id_token={credential}'
+            )
+            
+            if google_response.status_code != 200:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid Google token'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            google_data = google_response.json()
+            email = google_data.get('email')
+            
+            if not email:
+                return Response({
+                    'success': False,
+                    'error': 'Email not found in Google token'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if user exists
+            try:
+                user = api_models.User.objects.get(email=email)
+                if not user.is_active:
+                    return Response({
+                        'success': False,
+                        'error': 'Account is not active. Please verify your email.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Generate tokens
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                refresh_token = str(refresh)
+                
+                return Response({
+                    'success': True,
+                    'access': access_token,
+                    'refresh': refresh_token,
+                    'message': 'Google login successful'
+                }, status=status.HTTP_200_OK)
+                
+            except api_models.User.DoesNotExist:
+                return Response({
+                    'success': False,
+                    'error': 'No account found with this email. Please register first.'
+                }, status=status.HTTP_404_NOT_FOUND)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Google login failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GoogleRegisterView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        try:
+            credential = request.data.get('credential')
+            if not credential:
+                return Response({
+                    'success': False,
+                    'error': 'Google credential is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Verify the Google token
+            google_response = requests.get(
+                f'https://oauth2.googleapis.com/tokeninfo?id_token={credential}'
+            )
+            
+            if google_response.status_code != 200:
+                return Response({
+                    'success': False,
+                    'error': 'Invalid Google token'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            google_data = google_response.json()
+            email = google_data.get('email')
+            name = google_data.get('name', '')
+            
+            if not email:
+                return Response({
+                    'success': False,
+                    'error': 'Email not found in Google token'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if user already exists
+            if api_models.User.objects.filter(email=email).exists():
+                return Response({
+                    'success': False,
+                    'error': 'An account with this email already exists. Please login instead.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create new user
+            user = api_models.User.objects.create(
+                email=email,
+                full_name=name,
+                username=email.split('@')[0],
+                is_active=True,  # Google users are automatically verified
+                is_google_user=True  # Add this field to your User model if needed
+            )
+            
+            # Create profile
+            api_models.Profile.objects.create(user=user)
+            
+            return Response({
+                'success': True,
+                'message': 'Google registration successful'
+            }, status=status.HTTP_201_CREATED)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Google registration failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # This code defines another DRF View class called ProfileView, which inherits from generics.RetrieveAPIView and used to show user profile view.
@@ -306,7 +435,21 @@ class DashboardCommentLists(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return api_models.Comment.objects.all()
+        # Get user_id from the request or URL parameters
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            try:
+                user = api_models.User.objects.get(id=user_id)
+                # Get comments on posts created by this user
+                return api_models.Comment.objects.filter(
+                    post__user=user,
+                    is_deleted=False
+                ).order_by('-date')
+            except api_models.User.DoesNotExist:
+                return api_models.Comment.objects.none()
+        else:
+            # If no user_id provided, return empty queryset
+            return api_models.Comment.objects.none()
 
 class DashboardNotificationLists(generics.ListAPIView):
     serializer_class = api_serializer.NotificationSerializer

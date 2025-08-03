@@ -5,57 +5,27 @@ import Footer from "../partials/Footer";
 import { Link } from "react-router-dom";
 import Moment from "../../plugin/Moment";
 import apiInstance from "../../utils/axios";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 function Category() {
     const { slug } = useParams();
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchType, setSearchType] = useState("all"); // "all", "categories", "posts"
-
-    // Pagination state for categories
-    const [categoryCurrentPage, setCategoryCurrentPage] = useState(1);
-    const categoryItemsPerPage = 8;
-    const categoryIndexOfLastItem = categoryCurrentPage * categoryItemsPerPage;
-    const categoryIndexOfFirstItem = categoryIndexOfLastItem - categoryItemsPerPage;
-    const filteredCategories = categories?.filter(category =>
-        category.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    const currentCategories = filteredCategories?.slice(categoryIndexOfFirstItem, categoryIndexOfLastItem);
-    const categoryTotalPages = Math.ceil((filteredCategories?.length || 0) / categoryItemsPerPage);
-
-    // Pagination state for posts
-    const [postCurrentPage, setPostCurrentPage] = useState(1);
-    const postItemsPerPage = 12;
-    const postIndexOfLastItem = postCurrentPage * postItemsPerPage;
-    const postIndexOfFirstItem = postIndexOfLastItem - postItemsPerPage;
-    const currentPosts = posts?.slice(postIndexOfFirstItem, postIndexOfLastItem);
-    const postTotalPages = Math.ceil(posts?.length / postItemsPerPage);
-    const postPageNumbers = Array.from({ length: postTotalPages }, (_, index) => index + 1);
-
-    // Filter categories and posts based on search query
-    const filteredPosts = posts?.filter(post =>
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const [categorySearchQuery, setCategorySearchQuery] = useState("");
+    const [postSearchQuery, setPostSearchQuery] = useState("");
+    const [filteredCategories, setFilteredCategories] = useState([]);
+    const [filteredPosts, setFilteredPosts] = useState([]);
 
     const fetchCategories = async () => {
         try {
             setLoading(true);
             const response = await apiInstance.get('post/category/list/');
             setCategories(response.data);
-            
-            // If there's a slug in the URL, select that category
-            if (slug) {
-                const category = response.data.find(cat => cat.slug === slug);
-                if (category) {
-                    setSelectedCategory(category);
-                    await fetchCategoryPosts(category.slug);
-                }
-            }
+            setFilteredCategories(response.data);
         } catch (error) {
             console.error("Error fetching categories:", error);
         } finally {
@@ -68,7 +38,7 @@ function Category() {
             setLoading(true);
             const response = await apiInstance.get(`post/category/posts/${categorySlug}/`);
             setPosts(response.data);
-            setPostCurrentPage(1); // Reset post pagination when category changes
+            setFilteredPosts(response.data);
         } catch (error) {
             console.error("Error fetching category posts:", error);
         } finally {
@@ -78,36 +48,83 @@ function Category() {
 
     const handleCategoryClick = async (category) => {
         setSelectedCategory(category);
-        setPostCurrentPage(1); // Reset post pagination
-        navigate(`/category/${category.slug}`);
+        setPostSearchQuery(""); // Clear post search when category changes
         await fetchCategoryPosts(category.slug);
+        // Update URL
+        navigate(`/category/${category.slug}`);
     };
 
-    const handleSearch = (e) => {
-        setSearchQuery(e.target.value);
-        setCategoryCurrentPage(1);
-        setPostCurrentPage(1);
+    const handleCategorySearch = (e) => {
+        const query = e.target.value;
+        setCategorySearchQuery(query);
+        
+        if (!query.trim()) {
+            setFilteredCategories(categories);
+        } else {
+            const filtered = categories.filter(category =>
+                category.title.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredCategories(filtered);
+        }
     };
 
-    const handleSearchTypeChange = (type) => {
-        setSearchType(type);
-        setCategoryCurrentPage(1);
-        setPostCurrentPage(1);
+    const handlePostSearch = (e) => {
+        const query = e.target.value;
+        setPostSearchQuery(query);
+        
+        if (!query.trim()) {
+            setFilteredPosts(posts);
+        } else {
+            const filtered = posts.filter(post =>
+                post.title.toLowerCase().includes(query.toLowerCase()) ||
+                post.description.toLowerCase().includes(query.toLowerCase())
+            );
+            setFilteredPosts(filtered);
+        }
     };
 
+    const clearCategorySearch = () => {
+        setCategorySearchQuery("");
+        setFilteredCategories(categories);
+    };
+
+    const clearPostSearch = () => {
+        setPostSearchQuery("");
+        setFilteredPosts(posts);
+    };
+
+    // Initialize from URL params
     useEffect(() => {
         fetchCategories();
+        if (slug) {
+            const category = categories.find(cat => cat.slug === slug);
+            if (category) {
+                setSelectedCategory(category);
+                fetchCategoryPosts(slug);
+            }
+        }
     }, [slug]);
+
+    // Update filtered posts when posts change
+    useEffect(() => {
+        setFilteredPosts(posts);
+    }, [posts]);
+
+    // Update filtered categories when categories change
+    useEffect(() => {
+        setFilteredCategories(categories);
+    }, [categories]);
 
     if (loading) {
         return (
-            <div>
+            <div className="d-flex flex-column min-vh-100">
                 <Header />
-                <div className="container py-5">
+                <div className="flex-grow-1 d-flex align-items-center justify-content-center">
                     <div className="text-center">
-                        <div className="spinner-border text-primary" role="status">
+                        <div className="spinner-border text-success" role="status">
                             <span className="visually-hidden">Loading...</span>
                         </div>
+                        <p className="mt-3">{t('loading')}</p>
                     </div>
                 </div>
                 <Footer />
@@ -118,274 +135,238 @@ function Category() {
     return (
         <div className="d-flex flex-column min-vh-100">
             <Header />
-            
-            {/* Search Section */}
-            <section className="py-4 bg-light">
-                <div className="container">
-                    <div className="row justify-content-center">
-                        <div className="col-lg-8">
-                            <div className="card shadow-sm">
+            <div className="flex-grow-1" style={{ backgroundColor: '#f8f9fa' }}>
+                <div className="container my-5">
+                    <div className="row">
+                        {/* Categories Section */}
+                        <div className="col-lg-4 mb-4">
+                            <div className="card shadow-sm border-0" style={{ backgroundColor: '#ffffff' }}>
+                                <div className="card-header text-white" style={{ backgroundColor: '#28a745', borderBottom: 'none' }}>
+                                    <h5 className="mb-0">
+                                        <i className="fas fa-tags me-2"></i>
+                                        {t('categories')}
+                                    </h5>
+                                </div>
                                 <div className="card-body">
-                                    <div className="input-group mb-3">
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Search categories and posts..."
-                                            value={searchQuery}
-                                            onChange={handleSearch}
-                                        />
-                                        <button className="btn btn-primary" type="button">
-                                            <i className="fas fa-search"></i>
-                                        </button>
+                                    {/* Category Search */}
+                                    <div className="mb-3">
+                                        <div className="input-group">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder={t('searchCategories')}
+                                                value={categorySearchQuery}
+                                                onChange={handleCategorySearch}
+                                                style={{ borderColor: '#dee2e6' }}
+                                            />
+                                            {categorySearchQuery && (
+                                                <button
+                                                    className="btn"
+                                                    type="button"
+                                                    onClick={clearCategorySearch}
+                                                    style={{ backgroundColor: '#6c757d', borderColor: '#6c757d', color: 'white' }}
+                                                >
+                                                    <i className="fas fa-times"></i>
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="btn-group w-100">
-                                        <button
-                                            className={`btn ${searchType === 'all' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => handleSearchTypeChange('all')}
-                                        >
-                                            All
-                                        </button>
-                                        <button
-                                            className={`btn ${searchType === 'categories' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => handleSearchTypeChange('categories')}
-                                        >
-                                            Categories
-                                        </button>
-                                        <button
-                                            className={`btn ${searchType === 'posts' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => handleSearchTypeChange('posts')}
-                                        >
-                                            Posts
-                                        </button>
+
+                                    {/* Categories List */}
+                                    <div className="list-group list-group-flush">
+                                        {filteredCategories.map((category) => (
+                                            <button
+                                                key={category.id}
+                                                className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 ${
+                                                    selectedCategory?.id === category.id ? 'active' : ''
+                                                }`}
+                                                onClick={() => handleCategoryClick(category)}
+                                                style={{
+                                                    backgroundColor: selectedCategory?.id === category.id ? '#e8f5e8' : 'transparent',
+                                                    color: selectedCategory?.id === category.id ? '#155724' : '#495057',
+                                                    borderLeft: selectedCategory?.id === category.id ? '4px solid #28a745' : 'none'
+                                                }}
+                                            >
+                                                <div>
+                                                    <h6 className="mb-1" style={{ fontWeight: selectedCategory?.id === category.id ? '600' : '400' }}>
+                                                        {category.title}
+                                                    </h6>
+                                                    <small style={{ color: selectedCategory?.id === category.id ? '#155724' : '#6c757d' }}>
+                                                        {category.post_count || 0} {t('posts')}
+                                                    </small>
+                                                </div>
+                                                <span className="badge rounded-pill" style={{ 
+                                                    backgroundColor: selectedCategory?.id === category.id ? '#28a745' : '#6c757d',
+                                                    color: 'white'
+                                                }}>
+                                                    {category.post_count || 0}
+                                                </span>
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Posts Section */}
+                        <div className="col-lg-8">
+                            {selectedCategory ? (
+                                <div>
+                                    {/* Category Header */}
+                                    <div className="d-flex justify-content-between align-items-center mb-4">
+                                        <div>
+                                            <h2 className="mb-1" style={{ color: '#2c3e50' }}>
+                                                <i className="fas fa-folder me-2" style={{ color: '#28a745' }}></i>
+                                                {selectedCategory.title}
+                                            </h2>
+                                            <p className="text-muted mb-0">
+                                                {posts.length} {t('posts')} {t('found')}
+                                            </p>
+                                        </div>
+                                        <button
+                                            className="btn"
+                                            onClick={() => {
+                                                setSelectedCategory(null);
+                                                setPosts([]);
+                                                setFilteredPosts([]);
+                                                setPostSearchQuery("");
+                                                navigate('/category');
+                                            }}
+                                            style={{ 
+                                                backgroundColor: '#6c757d', 
+                                                borderColor: '#6c757d', 
+                                                color: 'white' 
+                                            }}
+                                        >
+                                            <i className="fas fa-arrow-left me-2"></i>
+                                            {t('backToCategories')}
+                                        </button>
+                                    </div>
+
+                                    {/* Post Search */}
+                                    <div className="card mb-4 border-0 shadow-sm" style={{ backgroundColor: '#ffffff' }}>
+                                        <div className="card-body">
+                                            <div className="input-group">
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder={t('searchPostsInCategory')}
+                                                    value={postSearchQuery}
+                                                    onChange={handlePostSearch}
+                                                    style={{ borderColor: '#dee2e6' }}
+                                                />
+                                                {postSearchQuery && (
+                                                    <button
+                                                        className="btn"
+                                                        type="button"
+                                                        onClick={clearPostSearch}
+                                                        style={{ backgroundColor: '#6c757d', borderColor: '#6c757d', color: 'white' }}
+                                                    >
+                                                        <i className="fas fa-times"></i>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Posts Grid */}
+                                    {filteredPosts.length > 0 ? (
+                                        <div className="row g-4">
+                                            {filteredPosts.map((post) => (
+                                                <div className="col-md-6 col-lg-4" key={post.id}>
+                                                    <div className="card h-100 border-0 shadow-sm" style={{ 
+                                                        backgroundColor: '#ffffff',
+                                                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out'
+                                                    }}
+                                                    onMouseEnter={(e) => {
+                                                        e.currentTarget.style.transform = 'translateY(-5px)';
+                                                        e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,0,0,0.1)';
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.currentTarget.style.transform = 'translateY(0)';
+                                                        e.currentTarget.style.boxShadow = '0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)';
+                                                    }}
+                                                    >
+                                                        <div className="position-relative">
+                                                            <img 
+                                                                className="card-img-top" 
+                                                                style={{ 
+                                                                    width: "100%", 
+                                                                    height: "200px", 
+                                                                    objectFit: "cover"
+                                                                }} 
+                                                                src={post.image} 
+                                                                alt={post.title} 
+                                                            />
+                                                            <div className="position-absolute top-0 end-0 m-2">
+                                                                <span className="badge" style={{ backgroundColor: '#28a745', color: 'white' }}>
+                                                                    {post.category?.title}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="card-body d-flex flex-column">
+                                                            <h5 className="card-title">
+                                                                <Link 
+                                                                    to={`/${post.slug}`} 
+                                                                    className="text-decoration-none stretched-link"
+                                                                    style={{ color: '#2c3e50' }}
+                                                                >
+                                                                    {post.title}
+                                                                </Link>
+                                                            </h5>
+                                                            <p className="card-text small" style={{ color: '#6c757d' }}>
+                                                                {post.description?.substring(0, 100)}...
+                                                            </p>
+                                                            <div className="mt-auto">
+                                                                <div className="d-flex align-items-center mb-2">
+                                                                    <i className="fas fa-user me-2" style={{ color: '#28a745' }}></i>
+                                                                    <small style={{ color: '#6c757d' }}>
+                                                                        {post.user_profile?.full_name || post.user_profile?.username}
+                                                                    </small>
+                                                                </div>
+                                                                <div className="d-flex align-items-center mb-2">
+                                                                    <i className="fas fa-calendar me-2" style={{ color: '#28a745' }}></i>
+                                                                    <small style={{ color: '#6c757d' }}>
+                                                                        <Moment date={post.date} />
+                                                                    </small>
+                                                                </div>
+                                                                <div className="d-flex align-items-center justify-content-between">
+                                                                    <div className="d-flex align-items-center">
+                                                                        <i className="fas fa-heart me-1" style={{ color: '#dc3545' }}></i>
+                                                                        <small style={{ color: '#6c757d' }}>{post.likes_count || 0}</small>
+                                                                    </div>
+                                                                    <div className="d-flex align-items-center">
+                                                                        <i className="fas fa-eye me-1" style={{ color: '#28a745' }}></i>
+                                                                        <small style={{ color: '#6c757d' }}>{post.view || 0}</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-5">
+                                            <i className="fas fa-search fa-3x mb-3" style={{ color: '#6c757d' }}></i>
+                                            <h5 style={{ color: '#2c3e50' }}>{postSearchQuery ? t('noPostsFound') : t('noPostsInCategory')}</h5>
+                                            <p style={{ color: '#6c757d' }}>
+                                                {postSearchQuery ? t('tryAdjustingSearch') : t('selectAnotherCategory')}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="text-center py-5">
+                                    <i className="fas fa-folder-open fa-3x mb-3" style={{ color: '#6c757d' }}></i>
+                                    <h5 style={{ color: '#2c3e50' }}>{t('selectCategory')}</h5>
+                                    <p style={{ color: '#6c757d' }}>{t('selectCategoryToViewPosts')}</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </section>
-
-            <div className="flex-grow-1">
-                {/* Categories Section */}
-                {(searchType === 'all' || searchType === 'categories') && (
-                    <>
-                        <section className="py-5">
-                            <div className="container">
-                                <div className="row">
-                                    <div className="col">
-                                        <h2 className="text-start d-block mb-4">
-                                            <i className="bi bi-grid-fill me-2"></i>
-                                            Categories {searchQuery && `- Search Results for "${searchQuery}"`}
-                                        </h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section className="pb-5">
-                            <div className="container">
-                                <div className="row g-3">
-                                    {currentCategories?.map((category) => (
-                                        <div className="col-sm-6 col-lg-3" key={category.id}>
-                                            <div 
-                                                className={`card h-100 shadow-sm hover-shadow cursor-pointer ${selectedCategory?.id === category.id ? 'border-primary' : ''}`}
-                                                onClick={() => handleCategoryClick(category)}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                <div className="card-fold position-relative">
-                                                    <img 
-                                                        className="card-img" 
-                                                        style={{ 
-                                                            width: "100%", 
-                                                            height: "150px", 
-                                                            objectFit: "cover",
-                                                            borderTopLeftRadius: "8px",
-                                                            borderTopRightRadius: "8px"
-                                                        }} 
-                                                        src={category.image || ""} 
-                                                        alt={category.title} 
-                                                    />
-                                                </div>
-                                                <div className="card-body px-3 pt-2 pb-2">
-                                                    <h4 className="card-title h6 mb-2">
-                                                        {category.title}
-                                                    </h4>
-                                                    <div className="d-flex align-items-center">
-                                                        <i className="fas fa-file-alt me-2"></i>
-                                                        <span className="text-muted small">{category.post_count} Articles</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Categories Pagination - Only show if there are more than 8 categories */}
-                                {filteredCategories?.length > categoryItemsPerPage && (
-                                    <nav className="d-flex mt-4">
-                                        <ul className="pagination">
-                                            <li className={`page-item ${categoryCurrentPage === 1 ? "disabled" : ""}`}>
-                                                <button 
-                                                    className="page-link text-dark fw-bold me-1 rounded" 
-                                                    onClick={() => setCategoryCurrentPage(categoryCurrentPage - 1)}
-                                                >
-                                                    <i className="fas fa-arrow-left me-2" />
-                                                    Previous
-                                                </button>
-                                            </li>
-                                        </ul>
-                                        <ul className="pagination">
-                                            {Array.from({ length: categoryTotalPages }, (_, index) => index + 1).map((number) => (
-                                                <li 
-                                                    key={number} 
-                                                    className={`page-item ${categoryCurrentPage === number ? "active" : ""}`}
-                                                >
-                                                    <button 
-                                                        className="page-link text-dark fw-bold rounded"
-                                                        onClick={() => setCategoryCurrentPage(number)}
-                                                    >
-                                                        {number}
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <ul className="pagination">
-                                            <li className={`page-item ${categoryCurrentPage === categoryTotalPages ? "disabled" : ""}`}>
-                                                <button 
-                                                    className="page-link text-dark fw-bold ms-1 rounded"
-                                                    onClick={() => setCategoryCurrentPage(categoryCurrentPage + 1)}
-                                                >
-                                                    Next
-                                                    <i className="fas fa-arrow-right ms-3" />
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                )}
-                            </div>
-                        </section>
-                    </>
-                )}
-
-                {/* Posts Section */}
-                {(searchType === 'all' || searchType === 'posts') && selectedCategory && (
-                    <>
-                        <section className="py-5">
-                            <div className="container">
-                                <div className="row">
-                                    <div className="col">
-                                        <h2 className="text-start d-block mb-4">
-                                            <i className="bi bi-file-text me-2"></i>
-                                            {selectedCategory.title} Posts {searchQuery && `- Search Results for "${searchQuery}"`}
-                                        </h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section className="pb-5">
-                            <div className="container">
-                                <div className="row g-4">
-                                    {filteredPosts?.map((post) => (
-                                        <div className="col-sm-6 col-lg-3" key={post.id}>
-                                            <div className="card h-100 shadow-sm hover-shadow">
-                                                <div className="card-fold position-relative">
-                                                    <img 
-                                                        className="card-img" 
-                                                        style={{ 
-                                                            width: "100%", 
-                                                            height: "200px", 
-                                                            objectFit: "cover",
-                                                            borderTopLeftRadius: "8px",
-                                                            borderTopRightRadius: "8px"
-                                                        }} 
-                                                        src={post.image || ""} 
-                                                        alt={post.title} 
-                                                    />
-                                                </div>
-                                                <div className="card-body px-3 pt-3 d-flex flex-column">
-                                                    <h4 className="card-title h5 mb-3">
-                                                        <Link 
-                                                            to={post.slug} 
-                                                            className="btn-link text-reset stretched-link fw-bold text-decoration-none"
-                                                        >
-                                                            {post.title}
-                                                        </Link>
-                                                    </h4>
-                                                    <div className="mt-auto">
-                                                        <div className="d-flex align-items-center mb-2">
-                                                            <button className="btn btn-sm btn-outline-primary">
-                                                                <i className="fas fa-heart me-1"></i>
-                                                                {post.likes_count || 0}
-                                                            </button>
-                                                        </div>
-                                                        <div className="d-flex align-items-center mb-2">
-                                                            <i className="fas fa-user me-2"></i>
-                                                            <span className="text-dark">{post.user_profile?.full_name || post.user_profile?.username}</span>
-                                                        </div>
-                                                        <div className="d-flex align-items-center mb-2">
-                                                            <i className="fas fa-calendar me-2"></i>
-                                                            <span className="text-muted">{Moment(post.date)}</span>
-                                                        </div>
-                                                        <div className="d-flex align-items-center">
-                                                            <i className="fas fa-eye me-2"></i>
-                                                            <span className="text-muted">{post?.view} Views</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Posts Pagination - Only show if there are more items than itemsPerPage */}
-                                {postTotalPages > 1 && (
-                                    <nav className="d-flex mt-4">
-                                        <ul className="pagination">
-                                            <li className={`page-item ${postCurrentPage === 1 ? "disabled" : ""}`}>
-                                                <button 
-                                                    className="page-link text-dark fw-bold me-1 rounded" 
-                                                    onClick={() => setPostCurrentPage(postCurrentPage - 1)}
-                                                >
-                                                    <i className="fas fa-arrow-left me-2" />
-                                                    Previous
-                                                </button>
-                                            </li>
-                                        </ul>
-                                        <ul className="pagination">
-                                            {Array.from({ length: postTotalPages }, (_, index) => index + 1).map((number) => (
-                                                <li 
-                                                    key={number} 
-                                                    className={`page-item ${postCurrentPage === number ? "active" : ""}`}
-                                                >
-                                                    <button 
-                                                        className="page-link text-dark fw-bold rounded"
-                                                        onClick={() => setPostCurrentPage(number)}
-                                                    >
-                                                        {number}
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <ul className="pagination">
-                                            <li className={`page-item ${postCurrentPage === postTotalPages ? "disabled" : ""}`}>
-                                                <button 
-                                                    className="page-link text-dark fw-bold ms-1 rounded"
-                                                    onClick={() => setPostCurrentPage(postCurrentPage + 1)}
-                                                >
-                                                    Next
-                                                    <i className="fas fa-arrow-right ms-3" />
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                )}
-                            </div>
-                        </section>
-                    </>
-                )}
             </div>
-
             <Footer />
         </div>
     );

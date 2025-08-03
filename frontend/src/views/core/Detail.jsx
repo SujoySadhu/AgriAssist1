@@ -19,9 +19,6 @@ const defaultPostImage = "https://placehold.co/600x400?text=No+Image+Available";
 const ImageGallery = ({ images, title }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
-    console.log('ImageGallery received images:', images);
-    console.log('ImageGallery title:', title);
-
     const nextImage = () => {
         setCurrentIndex((prevIndex) => 
             prevIndex === images.length - 1 ? 0 : prevIndex + 1
@@ -42,12 +39,10 @@ const ImageGallery = ({ images, title }) => {
         if (!imagePath) return defaultPostImage;
         if (imagePath.startsWith('http')) return imagePath;
         const fullUrl = `${BACKEND_URL}${imagePath}`;
-        console.log('Generated image URL:', fullUrl);
         return fullUrl;
     };
 
     if (!images || images.length === 0) {
-        console.log('No images to display');
         return null;
     }
 
@@ -124,13 +119,17 @@ const ImageGallery = ({ images, title }) => {
                     border-radius: 15px;
                     overflow: hidden;
                     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                    border: 1px solid #e9ecef;
+                    max-width: 800px;
+                    margin: 0 auto;
                 }
 
-                .gallery-main {
-                    position: relative;
-                    height: 500px;
-                    background: #f8f9fa;
-                }
+                                 .gallery-main {
+                     position: relative;
+                     height: 500px;
+                     background: #f8f9fa;
+                     border-radius: 15px;
+                 }
 
                 .gallery-image-container {
                     position: relative;
@@ -239,7 +238,7 @@ const ImageGallery = ({ images, title }) => {
 
                 @media (max-width: 768px) {
                     .gallery-main {
-                        height: 300px;
+                        height: 250px;
                     }
 
                     .gallery-nav-btn {
@@ -261,7 +260,7 @@ const ImageGallery = ({ images, title }) => {
     );
 };
 
-const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn }) => {
+const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn, setPost }) => {
   const [localComment, setLocalComment] = useState(comment);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState("");
@@ -296,18 +295,35 @@ const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn }) =>
         }
       );
 
+      // Create a complete reply object with all required fields
+      const newReply = {
+        ...response.data,
+        user_profile: {
+          username: allUserData.username,
+          profile_picture: allUserData.profile?.image || null,
+          full_name: allUserData.profile?.full_name || allUserData.username
+        },
+        replies: [],
+        is_liked: false,
+        likes_count: 0,
+        date: new Date().toISOString()
+      };
+
       // Update the local state with the new reply
       setLocalComment(prev => ({
         ...prev,
-        replies: [...(prev.replies || []), response.data]
+        replies: [...(prev.replies || []), newReply]
+      }));
+      
+      // Update the post's comments count
+      setPost(prev => ({
+        ...prev,
+        comments_count: (prev.comments_count || 0) + 1
       }));
       
       // Clear the reply input and hide it
       setReplyText("");
       setShowReplyInput(false);
-      
-      // Refresh the entire comment section
-      onCommentUpdate();
       
       Toast("success", "Reply posted successfully");
     } catch (error) {
@@ -430,16 +446,25 @@ const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn }) =>
       try {
         await api.delete(`comments/${commentToDelete.id}/`);
         
+        // Update the post's comments count locally
+        setPost(prev => ({
+          ...prev,
+          comments_count: Math.max(0, (prev.comments_count || 0) - 1)
+        }));
+        
         // If it's a reply, remove it from the replies array
         if (commentToDelete.parent) {
           setLocalComment(prev => ({
             ...prev,
             replies: prev.replies.filter(reply => reply.id !== commentToDelete.id)
           }));
+        } else {
+          // If it's a main comment, remove it from the comments list
+          // We need to update the parent component's comments state
+          // This will be handled by the parent component through the onCommentUpdate callback
+          // but we'll pass a flag to indicate it's a deletion, not a full refresh
+          onCommentUpdate('deleted', commentToDelete.id);
         }
-        
-        // Always call onCommentUpdate to refresh the entire comment section
-        onCommentUpdate();
         
         Toast("success", "Comment deleted successfully");
         modal.hide();
@@ -621,6 +646,7 @@ const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn }) =>
             onCommentUpdate={onCommentUpdate}
             depth={depth + 1}
             isLoggedIn={isLoggedIn}
+            setPost={setPost}
           />
         ))}
       </div>
@@ -641,9 +667,6 @@ function Detail() {
     try {
       setLoading(true);
       const { data } = await apiInstance.get(`post/detail/${slug}/`);
-      console.log('Fetched post data:', data);
-      console.log('Post images:', data.all_images);
-      console.log('Main image:', data.image);
       
       // Ensure comments have their replies properly structured
       const processedData = {
@@ -668,13 +691,36 @@ function Detail() {
     if (!commentContent.trim()) return Toast("warning", "Comment cannot be empty");
 
     try {
-      await api.post("comments/create/", {
+      const response = await api.post("comments/create/", {
         post: post?.id,
         comment: commentContent,
       });
+      
+      // Create a complete comment object with all required fields
+      const newComment = {
+        ...response.data,
+        id: response.data.id || `temp_${Date.now()}`, // Fallback ID if server doesn't provide one
+        user_profile: {
+          username: allUserData.username,
+          profile_picture: allUserData.profile?.image || null,
+          full_name: allUserData.profile?.full_name || allUserData.username
+        },
+        replies: [],
+        is_liked: false,
+        likes_count: 0,
+        date: new Date().toISOString()
+      };
+      
+      // Add the new comment to the local state using handleCommentUpdate
+      handleCommentUpdate('added', null, newComment);
+      
       setCommentContent("");
-      await fetchPost();
       Toast("success", "Comment posted!");
+      
+      // Fallback: Refresh the post after a short delay to ensure comment appears
+      setTimeout(() => {
+        fetchPost();
+      }, 1000);
     } catch (error) {
       console.error("Comment error:", error);
       if(error.response?.status === 401) {
@@ -758,8 +804,24 @@ function Detail() {
     }
   };
 
-  const handleCommentUpdate = async () => {
-    await fetchPost(); // Make sure to await the fetch
+  const handleCommentUpdate = (action = 'refresh', commentId = null, newComment = null) => {
+    if (action === 'deleted' && commentId) {
+      // Handle comment deletion locally without full post reload
+      setPost(prevPost => ({
+        ...prevPost,
+        comments: prevPost.comments.filter(comment => comment.id !== commentId)
+      }));
+    } else if (action === 'added' && newComment) {
+      // Handle comment addition locally
+      setPost(prevPost => ({
+        ...prevPost,
+        comments: [...(prevPost.comments || []), newComment],
+        comments_count: (prevPost.comments_count || 0) + 1
+      }));
+    } else {
+      // Full refresh for other cases (edit, etc.)
+      fetchPost();
+    }
   };
 
   useEffect(() => {
@@ -998,22 +1060,23 @@ function Detail() {
               {post.all_images && post.all_images.length > 0 ? (
                 <ImageGallery images={post.all_images} title={post.title} />
               ) : post.image ? (
-                <div className="position-relative rounded-3 overflow-hidden mb-4">
+                <div className="position-relative rounded-3 overflow-hidden mb-4 shadow-lg" style={{ maxWidth: "800px", margin: "0 auto" }}>
                   <img
                     src={post.image.startsWith('http') ? post.image : `${BACKEND_URL}${post.image}`}
                     alt={post.title}
                     className="img-fluid w-100"
-                    style={{ 
-                      maxHeight: "600px", 
-                      objectFit: "cover",
-                      objectPosition: "center"
-                    }}
+                                         style={{ 
+                       maxHeight: "500px", 
+                       objectFit: "cover",
+                       objectPosition: "center",
+                       borderRadius: "12px"
+                     }}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = defaultPostImage;
                     }}
                   />
-                  <div className="position-absolute bottom-0 start-0 w-100 p-3 bg-dark bg-opacity-50 text-white">
+                  <div className="position-absolute bottom-0 start-0 w-100 p-3 bg-dark bg-opacity-50 text-white rounded-bottom">
                     <small className="d-block text-white-50">Featured Image</small>
                   </div>
                 </div>
@@ -1118,6 +1181,7 @@ function Detail() {
                     postId={post.id}
                     onCommentUpdate={handleCommentUpdate}
                     isLoggedIn={isLoggedIn()}
+                    setPost={setPost}
                   />
                 ))}
               </div>

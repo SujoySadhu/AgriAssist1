@@ -175,7 +175,7 @@ function AddPost() {
                                             <img 
                                                 style={{ 
                                                     width: "100%", 
-                                                    height: "330px", 
+                                                    height: "400px", 
                                                     objectFit: "cover", 
                                                     borderRadius: "10px" 
                                                 }} 
