@@ -27,7 +27,7 @@ const translations = {
     
     // Disease Detection
     plantDiseaseDetection: "Plant Disease Detection",
-    uploadDescription: "Upload a clear image of your plant's affected area to detect diseases and get treatment recommendations.",
+    uploadDescription: "Upload a clear image of your plant's leaf to detect diseases and get treatment recommendations.",
     dragDropText: "Drag & Drop or Click to Upload",
     supportedFormats: "Supported formats: JPG, PNG (Max 5MB)",
     selectImage: "Select Image",
@@ -173,7 +173,7 @@ const translations = {
     
     // Disease Detection
     plantDiseaseDetection: "উদ্ভিদ রোগ শনাক্তকরণ",
-    uploadDescription: "রোগ শনাক্তকরণ এবং চিকিৎসার পরামর্শ পেতে আপনার উদ্ভিদের আক্রান্ত অংশের একটি স্পষ্ট ছবি আপলোড করুন।",
+    uploadDescription: "রোগ শনাক্তকরণ এবং চিকিৎসার পরামর্শ পেতে আপনার উদ্ভিদের পাতার একটি স্পষ্ট ছবি আপলোড করুন।",
     dragDropText: "টেনে আনুন বা আপলোড করতে ক্লিক করুন",
     supportedFormats: "সমর্থিত ফরম্যাট: JPG, PNG (সর্বোচ্চ ৫MB)",
     selectImage: "ছবি নির্বাচন করুন",

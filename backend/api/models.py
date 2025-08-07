@@ -146,34 +146,8 @@ class PostImage(models.Model):
     def __str__(self):
         return f"{self.post.title} - Image {self.order + 1}"
 
-# class Comment(models.Model):
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-#     name = models.CharField(max_length=100)
-#     email = models.CharField(max_length=100)
-#     comment = models.TextField()
-#     reply = models.TextField(null=True, blank=True)
-#     date = models.DateTimeField(auto_now_add=True)
 
-#     def __str__(self):
-#         return f"{self.post.title} - {self.name}"
-    
-#     class Meta:
-#         verbose_name_plural = "Comment"
-# class Comment(models.Model):
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # Add user field
-#     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True)  # For nested comments
-#     name = models.CharField(max_length=100, null=True, blank=True)
-#     email = models.CharField(max_length=100, null=True, blank=True)
-#     comment = models.TextField()
-#     reply = models.TextField(null=True, blank=True)
-#     date = models.DateTimeField(auto_now_add=True)
 
-#     def __str__(self):
-#         return f"{self.post.title} - {self.user.username if self.user else self.name}"
-    
-#     class Meta:
-#         verbose_name_plural = "Comment"
 
 class Comment(models.Model):
     post = models.ForeignKey(

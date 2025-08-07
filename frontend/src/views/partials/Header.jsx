@@ -1,385 +1,4 @@
-// import React, { useState, useEffect } from "react";
-// import { Link, useNavigate, useLocation } from "react-router-dom";
-// import { useAuthStore } from "../../store/auth";
-// import { useLanguage } from "../../contexts/LanguageContext";
-// import LanguageSwitcher from "../../components/LanguageSwitcher";
 
-// function Header() {
-//     const { isLoggedIn, user } = useAuthStore();
-//     const { t } = useLanguage();
-
-//     const [searchQuery, setSearchQuery] = useState("");
-//     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
-//     const [userData, setUserData] = useState(null);
-//     const navigate = useNavigate();
-//     const location = useLocation();
-
-//     // Update authentication state when it changes
-//     useEffect(() => {
-//         const loggedIn = isLoggedIn();
-//         const userInfo = user();
-//         setIsUserLoggedIn(loggedIn);
-//         setUserData(userInfo);
-//     }, [isLoggedIn, user]);
-
-//     // Initialize search query from URL params
-//     useEffect(() => {
-//         const urlParams = new URLSearchParams(location.search);
-//         const query = urlParams.get("query");
-//         if (query) {
-//             setSearchQuery(query);
-//         }
-//     }, [location.search]);
-
-//     const handleSearchSubmit = (e) => {
-//         e.preventDefault();
-//         if (searchQuery.trim()) {
-//             // Navigate to home page with search query
-//             navigate(`/?query=${encodeURIComponent(searchQuery.trim())}`);
-//         }
-//     };
-
-//     const handleSearchChange = (e) => {
-//         setSearchQuery(e.target.value);
-//     };
-
-//     return (
-//         <header className="navbar-dark navbar-sticky header-static" style={{ backgroundColor: '#1B4332', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-//             <nav className="navbar navbar-expand-lg">
-//                 <div className="container">
-//                     {/* Brand/Logo Section */}
-//                     <div className="navbar-brand-container d-flex align-items-center">
-//                         <Link className="navbar-brand d-flex align-items-center" to="/" style={{ textDecoration: 'none' }}>
-//                             <i 
-//                                 className="fas fa-seedling" 
-//                                 style={{ 
-//                                     fontSize: '2rem',
-//                                     color: '#74C69D',
-//                                     marginRight: '12px'
-//                                 }}
-//                             ></i>
-//                             <span className="fw-bold text-white" style={{ fontSize: '1.4rem', letterSpacing: '0.5px' }}>AgriAssist</span>
-//                         </Link>
-//                     </div>
-
-//                     {/* Mobile Toggle Button */}
-//                     <button 
-//                         className="navbar-toggler border-0" 
-//                         type="button" 
-//                         data-bs-toggle="collapse" 
-//                         data-bs-target="#navbarCollapse" 
-//                         aria-controls="navbarCollapse" 
-//                         aria-expanded="false" 
-//                         aria-label="Toggle navigation"
-//                         style={{ padding: '8px 12px' }}
-//                     >
-//                         <span className="navbar-toggler-icon"></span>
-//                     </button>
-
-//                     {/* Collapsible Content */}
-//                     <div className="collapse navbar-collapse" id="navbarCollapse">
-//                         {/* Search Bar - Centered on Desktop */}
-//                         <div className="navbar-nav mx-auto d-none d-lg-flex" style={{ maxWidth: '400px', width: '100%' }}>
-//                             <div className="nav-item w-100">
-//                                 <form className="position-relative" onSubmit={handleSearchSubmit}>
-//                                     <input 
-//                                         className="form-control border-0 shadow-sm" 
-//                                         type="search" 
-//                                         placeholder={t('searchPlaceholder')} 
-//                                         aria-label="Search"
-//                                         value={searchQuery}
-//                                         onChange={handleSearchChange}
-//                                         style={{
-//                                             height: '42px',
-//                                             borderRadius: '25px',
-//                                             paddingLeft: '20px',
-//                                             paddingRight: '50px',
-//                                             fontSize: '0.95rem',
-//                                             backgroundColor: '#ffffff'
-//                                         }}
-//                                     />
-//                                     <button 
-//                                         className="btn bg-transparent border-0 position-absolute top-50 end-0 translate-middle-y" 
-//                                         type="submit"
-//                                         style={{ 
-//                                             color: '#1B4332',
-//                                             right: '15px',
-//                                             padding: '8px'
-//                                         }}
-//                                     >
-//                                         <i className="bi bi-search fs-6"></i>
-//                                     </button>
-//                                 </form>
-//                             </div>
-//                         </div>
-
-//                         {/* Navigation Links */}
-//                         <ul className="navbar-nav ms-auto align-items-center" style={{ gap: '0.25rem' }}>
-//                             {/* Main Navigation Items */}
-//                             <li className="nav-item">
-//                                 <Link 
-//                                     className="nav-link px-3 py-2" 
-//                                     to="/" 
-//                                     style={{ 
-//                                         color: '#B7E4C7', 
-//                                         fontWeight: '500',
-//                                         borderRadius: '8px',
-//                                         transition: 'all 0.3s ease'
-//                                     }}
-//                                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                 >
-//                                     {t('home')}
-//                                 </Link>
-//                             </li>
-//                             <li className="nav-item">
-//                                 <Link 
-//                                     className="nav-link px-3 py-2" 
-//                                     to="/category/" 
-//                                     style={{ 
-//                                         color: '#B7E4C7', 
-//                                         fontWeight: '500',
-//                                         borderRadius: '8px',
-//                                         transition: 'all 0.3s ease'
-//                                     }}
-//                                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                 >
-//                                     {t('category')}
-//                                 </Link>
-//                             </li>
-//                             <li className="nav-item">
-//                                 <Link 
-//                                     className="nav-link px-3 py-2" 
-//                                     to="/chatbot/" 
-//                                     style={{ 
-//                                         color: '#B7E4C7', 
-//                                         fontWeight: '500',
-//                                         borderRadius: '8px',
-//                                         transition: 'all 0.3s ease'
-//                                     }}
-//                                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                 >
-//                                     {t('agriAssist')}
-//                                 </Link>
-//                             </li>
-//                             <li className="nav-item">
-//                                 <Link 
-//                                     className="nav-link px-3 py-2" 
-//                                     to="/disease-detection" 
-//                                     style={{ 
-//                                         color: '#B7E4C7', 
-//                                         fontWeight: '500',
-//                                         borderRadius: '8px',
-//                                         transition: 'all 0.3s ease'
-//                                     }}
-//                                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                 >
-//                                     {t('diseaseDetection')}
-//                                 </Link>
-//                             </li>
-                            
-//                             {/* Pages Dropdown */}
-//                             <li className="nav-item dropdown">
-//                                 <a 
-//                                     className="nav-link dropdown-toggle px-3 py-2" 
-//                                     href="#" 
-//                                     id="pagesMenu" 
-//                                     data-bs-toggle="dropdown" 
-//                                     aria-haspopup="true" 
-//                                     aria-expanded="false" 
-//                                     style={{ 
-//                                         color: '#B7E4C7', 
-//                                         fontWeight: '500',
-//                                         borderRadius: '8px',
-//                                         transition: 'all 0.3s ease'
-//                                     }}
-//                                     onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                     onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                 >
-//                                     {t('pages')}
-//                                 </a>
-//                                 <ul className="dropdown-menu shadow-sm border-0" aria-labelledby="pagesMenu" style={{ borderRadius: '12px', marginTop: '8px' }}>
-//                                     <li>
-//                                         <Link className="dropdown-item py-2 px-3" to="/about/" style={{ borderRadius: '8px', margin: '2px 8px' }}>
-//                                             <i className="bi bi-person-lines-fill me-2"></i> {t('about')}
-//                                         </Link>
-//                                     </li>
-//                                     <li>
-//                                         <Link className="dropdown-item py-2 px-3" to="/contact/" style={{ borderRadius: '8px', margin: '2px 8px' }}>
-//                                             <i className="bi bi-envelope me-2"></i> {t('contact')}
-//                                         </Link>
-//                                     </li>
-//                                 </ul>
-//                             </li>
-                            
-//                             {/* Language Switcher */}
-//                             <li className="nav-item ms-2">
-//                                 <LanguageSwitcher />
-//                             </li>
-
-//                             {/* Authentication Section */}
-//                             {isUserLoggedIn ? (
-//                                 <>
-//                                     {/* Create Post Button */}
-//                                     <li className="nav-item ms-3">
-//                                         <Link 
-//                                             className="btn btn-success px-4 py-2" 
-//                                             to="/add-post/"
-//                                             style={{ 
-//                                                 borderRadius: '25px',
-//                                                 fontSize: '0.9rem',
-//                                                 fontWeight: '600',
-//                                                 textDecoration: 'none',
-//                                                 display: 'flex',
-//                                                 alignItems: 'center',
-//                                                 gap: '0.5rem',
-//                                                 boxShadow: '0 2px 8px rgba(116, 198, 157, 0.3)',
-//                                                 transition: 'all 0.3s ease'
-//                                             }}
-//                                             onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-//                                             onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
-//                                         >
-//                                             <i className="fas fa-plus"></i>
-//                                             {t('createPost')}
-//                                         </Link>
-//                                     </li>
-                                    
-//                                     {/* User Menu */}
-//                                     <li className="nav-item dropdown ms-3">
-//                                         <a 
-//                                             className="nav-link dropdown-toggle px-3 py-2" 
-//                                             href="#" 
-//                                             id="userMenu" 
-//                                             data-bs-toggle="dropdown" 
-//                                             aria-haspopup="true" 
-//                                             aria-expanded="false" 
-//                                             style={{ 
-//                                                 color: '#B7E4C7', 
-//                                                 fontWeight: '500',
-//                                                 borderRadius: '8px',
-//                                                 transition: 'all 0.3s ease',
-//                                                 display: 'flex',
-//                                                 alignItems: 'center',
-//                                                 gap: '0.5rem'
-//                                             }}
-//                                             onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                         >
-//                                             <i className="bi bi-person-circle fs-5"></i>
-//                                             <span className="d-none d-md-inline">
-//                                                 {userData?.username || userData?.email || t('user')}
-//                                             </span>
-//                                         </a>
-//                                         <ul className="dropdown-menu shadow-sm border-0" aria-labelledby="userMenu" style={{ borderRadius: '12px', marginTop: '8px', minWidth: '200px' }}>
-//                                             <li>
-//                                                 <Link className="dropdown-item py-2 px-3" to="/dashboard/" style={{ borderRadius: '8px', margin: '2px 8px' }}>
-//                                                     <i className="bi bi-speedometer2 me-2"></i> {t('dashboard')}
-//                                                 </Link>
-//                                             </li>
-//                                             <li>
-//                                                 <Link className="dropdown-item py-2 px-3" to="/profile/" style={{ borderRadius: '8px', margin: '2px 8px' }}>
-//                                                     <i className="bi bi-person me-2"></i> {t('profile')}
-//                                                 </Link>
-//                                             </li>
-//                                             <li><hr className="dropdown-divider mx-3" /></li>
-//                                             <li>
-//                                                 <Link className="dropdown-item py-2 px-3" to="/logout/" style={{ borderRadius: '8px', margin: '2px 8px' }}>
-//                                                     <i className="bi bi-box-arrow-right me-2"></i> {t('logout')}
-//                                                 </Link>
-//                                             </li>
-//                                         </ul>
-//                                     </li>
-//                                 </>
-//                             ) : (
-//                                 <>
-//                                     {/* Login/Register for non-authenticated users */}
-//                                     <li className="nav-item ms-3">
-//                                         <Link 
-//                                             className="nav-link px-3 py-2" 
-//                                             to="/login/" 
-//                                             style={{ 
-//                                                 color: '#B7E4C7', 
-//                                                 fontWeight: '500',
-//                                                 borderRadius: '8px',
-//                                                 transition: 'all 0.3s ease'
-//                                             }}
-//                                             onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.1)'}
-//                                             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-//                                         >
-//                                             {t('login')}
-//                                         </Link>
-//                                     </li>
-//                                     <li className="nav-item ms-2">
-//                                         <Link 
-//                                             className="btn btn-outline-light px-4 py-2" 
-//                                             to="/register/" 
-//                                             style={{ 
-//                                                 borderRadius: '25px',
-//                                                 fontSize: '0.9rem',
-//                                                 fontWeight: '600',
-//                                                 textDecoration: 'none',
-//                                                 border: '2px solid #B7E4C7',
-//                                                 transition: 'all 0.3s ease'
-//                                             }}
-//                                             onMouseEnter={(e) => {
-//                                                 e.target.style.backgroundColor = '#B7E4C7';
-//                                                 e.target.style.color = '#1B4332';
-//                                             }}
-//                                             onMouseLeave={(e) => {
-//                                                 e.target.style.backgroundColor = 'transparent';
-//                                                 e.target.style.color = '#B7E4C7';
-//                                             }}
-//                                         >
-//                                             {t('register')}
-//                                         </Link>
-//                                     </li>
-//                                 </>
-//                             )}
-//                         </ul>
-
-//                         {/* Mobile Search Bar */}
-//                         <div className="d-lg-none mt-3">
-//                             <form className="position-relative" onSubmit={handleSearchSubmit}>
-//                                 <input 
-//                                     className="form-control border-0 shadow-sm" 
-//                                     type="search" 
-//                                     placeholder={t('searchPlaceholder')} 
-//                                     aria-label="Search"
-//                                     value={searchQuery}
-//                                     onChange={handleSearchChange}
-//                                     style={{
-//                                         height: '42px',
-//                                         borderRadius: '25px',
-//                                         paddingLeft: '20px',
-//                                         paddingRight: '50px',
-//                                         fontSize: '0.95rem',
-//                                         backgroundColor: '#ffffff'
-//                                     }}
-//                                 />
-//                                 <button 
-//                                     className="btn bg-transparent border-0 position-absolute top-50 end-0 translate-middle-y" 
-//                                     type="submit"
-//                                     style={{ 
-//                                         color: '#1B4332',
-//                                         right: '15px',
-//                                         padding: '8px'
-//                                     }}
-//                                 >
-//                                     <i className="bi bi-search fs-6"></i>
-//                                 </button>
-//                             </form>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </nav>
-//         </header>
-//     );
-// }
-
-// export default Header;
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/auth";
@@ -389,27 +8,29 @@ import LanguageSwitcher from "../../components/LanguageSwitcher";
 function Header() {
     const { isLoggedIn, user } = useAuthStore();
     const { t } = useLanguage();
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [userData, setUserData] = useState(null);
-    const navigate = useNavigate();
-    const location = useLocation();
+    const [showSearch, setShowSearch] = useState(false);
 
     useEffect(() => {
+        // Check if current route is home page
+        setShowSearch(location.pathname === "/");
+        
         const loggedIn = isLoggedIn();
         const userInfo = user();
         setIsUserLoggedIn(loggedIn);
         setUserData(userInfo);
-    }, [isLoggedIn, user]);
 
-    useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
         const query = urlParams.get("query");
         if (query) {
             setSearchQuery(query);
         }
-    }, [location.search]);
+    }, [location, isLoggedIn, user]);
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
@@ -439,6 +60,36 @@ function Header() {
         transform: 'translateY(-1px)'
     };
 
+    // Dropdown toggle function
+    const toggleDropdown = (e) => {
+        e.preventDefault();
+        const menu = e.currentTarget.nextElementSibling;
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+            menu.style.opacity = '0';
+            menu.style.visibility = 'hidden';
+        } else {
+            menu.style.display = 'block';
+            menu.style.opacity = '1';
+            menu.style.visibility = 'visible';
+        }
+    };
+
+    // Dropdown hover handlers
+    const handleDropdownEnter = (e) => {
+        const menu = e.currentTarget.querySelector('.dropdown-menu');
+        menu.style.display = 'block';
+        menu.style.opacity = '1';
+        menu.style.visibility = 'visible';
+    };
+
+    const handleDropdownLeave = (e) => {
+        const menu = e.currentTarget.querySelector('.dropdown-menu');
+        menu.style.display = 'none';
+        menu.style.opacity = '0';
+        menu.style.visibility = 'hidden';
+    };
+
     return (
         <header className="navbar-dark" style={{ 
             backgroundColor: '#1B4332', 
@@ -448,10 +99,9 @@ function Header() {
             <div className="container">
                 <div className="d-flex align-items-center justify-content-between">
                     {/* Left Side - Logo */}
-                    <div className="d-flex align-items-center" style={{ width: '180px' }}>
+                    <div style={{ minWidth: '180px' }}>
                         <Link className="navbar-brand d-flex align-items-center" to="/" style={{ 
                             textDecoration: 'none',
-                            marginRight: '40px'
                         }}>
                             <i 
                                 className="fas fa-seedling" 
@@ -499,75 +149,161 @@ function Header() {
                                 <i className="bi bi-grid"></i>
                                 {t('category')}
                             </Link>
-                            <Link 
-                                className="nav-link" 
-                                to="/chatbot/"
-                                style={navLinkStyles}
-                                onMouseEnter={(e) => Object.assign(e.target.style, navLinkHoverStyles)}
-                                onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = 'transparent';
-                                    e.target.style.transform = 'none';
-                                }}
-                            >
-                                <i className="bi bi-robot"></i>
-                                {t('agriAssist')}
-                            </Link>
-                            <Link 
-                                className="nav-link" 
-                                to="/disease-detection"
-                                style={navLinkStyles}
-                                onMouseEnter={(e) => Object.assign(e.target.style, navLinkHoverStyles)}
-                                onMouseLeave={(e) => {
-                                    e.target.style.backgroundColor = 'transparent';
-                                    e.target.style.transform = 'none';
-                                }}
-                            >
-                                <i className="bi bi-bug"></i>
-                                {t('diseaseDetection')}
-                            </Link>
                             
-                            <div className="dropdown">
+                            {/* Combined AI Tools Dropdown */}
+                            <div className="dropdown"
+                                onMouseEnter={handleDropdownEnter}
+                                onMouseLeave={handleDropdownLeave}
+                            >
+                                <a 
+                                    className="nav-link dropdown-toggle" 
+                                    href="#" 
+                                    id="aiToolsMenu" 
+                                    style={{
+                                        ...navLinkStyles,
+                                        cursor: 'pointer',
+                                        position: 'relative'
+                                    }}
+                                    onClick={toggleDropdown}
+                                >
+                                    <i className="bi bi-robot"></i>
+                                    {t('aiTools')}
+                                </a>
+                                <ul 
+                                    className="dropdown-menu shadow-sm border-0" 
+                                    aria-labelledby="aiToolsMenu" 
+                                    style={{ 
+                                        borderRadius: '8px', 
+                                        padding: '8px',
+                                        backgroundColor: '#2D6A4F',
+                                        marginTop: '0',
+                                        display: 'none',
+                                        opacity: '0',
+                                        visibility: 'hidden',
+                                        transition: 'all 0.3s ease',
+                                        position: 'absolute',
+                                        zIndex: '1000'
+                                    }}
+                                >
+                                    <li>
+                                        <Link 
+                                            className="dropdown-item py-2 px-3" 
+                                            to="/chatbot/" 
+                                            style={{ 
+                                                borderRadius: '6px', 
+                                                color: '#D8F3DC',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.backgroundColor = 'transparent';
+                                            }}
+                                        >
+                                            <i className="bi bi-chat-square-text"></i> {t('agriAssist')}
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link 
+                                            className="dropdown-item py-2 px-3" 
+                                            to="/disease-detection" 
+                                            style={{ 
+                                                borderRadius: '6px', 
+                                                color: '#D8F3DC',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.backgroundColor = 'transparent';
+                                            }}
+                                        >
+                                            <i className="bi bi-bug"></i> {t('diseaseDetection')}
+                                        </Link>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* Pages Dropdown */}
+                            <div className="dropdown"
+                                onMouseEnter={handleDropdownEnter}
+                                onMouseLeave={handleDropdownLeave}
+                            >
                                 <a 
                                     className="nav-link dropdown-toggle" 
                                     href="#" 
                                     id="pagesMenu" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-haspopup="true" 
-                                    aria-expanded="false"
-                                    style={navLinkStyles}
-                                    onMouseEnter={(e) => Object.assign(e.target.style, navLinkHoverStyles)}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = 'transparent';
-                                        e.target.style.transform = 'none';
+                                    style={{
+                                        ...navLinkStyles,
+                                        cursor: 'pointer',
+                                        position: 'relative'
                                     }}
+                                    onClick={toggleDropdown}
                                 >
                                     <i className="bi bi-collection"></i>
                                     {t('pages')}
                                 </a>
-                                <ul className="dropdown-menu shadow-sm border-0" aria-labelledby="pagesMenu" style={{ 
-                                    borderRadius: '8px', 
-                                    padding: '8px',
-                                    backgroundColor: '#2D6A4F'
-                                }}>
+                                <ul 
+                                    className="dropdown-menu shadow-sm border-0" 
+                                    aria-labelledby="pagesMenu" 
+                                    style={{ 
+                                        borderRadius: '8px', 
+                                        padding: '8px',
+                                        backgroundColor: '#2D6A4F',
+                                        marginTop: '0',
+                                        display: 'none',
+                                        opacity: '0',
+                                        visibility: 'hidden',
+                                        transition: 'all 0.3s ease',
+                                        position: 'absolute',
+                                        zIndex: '1000'
+                                    }}
+                                >
                                     <li>
-                                        <Link className="dropdown-item py-2 px-3" to="/about/" style={{ 
-                                            borderRadius: '6px', 
-                                            color: '#D8F3DC',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}>
+                                        <Link 
+                                            className="dropdown-item py-2 px-3" 
+                                            to="/about/" 
+                                            style={{ 
+                                                borderRadius: '6px', 
+                                                color: '#D8F3DC',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.backgroundColor = 'transparent';
+                                            }}
+                                        >
                                             <i className="bi bi-info-circle"></i> {t('about')}
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link className="dropdown-item py-2 px-3" to="/contact/" style={{ 
-                                            borderRadius: '6px', 
-                                            color: '#D8F3DC',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px'
-                                        }}>
+                                        <Link 
+                                            className="dropdown-item py-2 px-3" 
+                                            to="/contact/" 
+                                            style={{ 
+                                                borderRadius: '6px', 
+                                                color: '#D8F3DC',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.target.style.backgroundColor = 'transparent';
+                                            }}
+                                        >
                                             <i className="bi bi-envelope"></i> {t('contact')}
                                         </Link>
                                     </li>
@@ -576,8 +312,43 @@ function Header() {
                         </nav>
                     </div>
 
-                    {/* Right Side - User Controls (Desktop) */}
-                    <div className="d-none d-lg-flex align-items-center" style={{ width: '180px', justifyContent: 'flex-end', gap: '16px' }}>
+                    {/* Right Side - Search and User Controls (Desktop) */}
+                    <div className="d-none d-lg-flex align-items-center" style={{ minWidth: '180px', justifyContent: 'flex-end', gap: '16px' }}>
+                        {/* Search Bar - Only shown on home page */}
+                        {showSearch && (
+                            <form onSubmit={handleSearchSubmit} className="me-2">
+                                <div className="input-group">
+                                    <input 
+                                        className="form-control border-0 shadow-sm" 
+                                        type="search" 
+                                        placeholder={t('searchPlaceholder')} 
+                                        aria-label="Search"
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        style={{
+                                            height: '36px',
+                                            borderRadius: '20px',
+                                            paddingLeft: '16px',
+                                            fontSize: '0.9rem',
+                                            backgroundColor: '#ffffff',
+                                            width: '180px'
+                                        }}
+                                    />
+                                    <button 
+                                        className="btn bg-transparent border-0 position-absolute end-0 translate-middle-y" 
+                                        type="submit"
+                                        style={{ 
+                                            color: '#1B4332',
+                                            right: '12px',
+                                            top: '50%'
+                                        }}
+                                    >
+                                        <i className="bi bi-search fs-6"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
                         <LanguageSwitcher />
 
                         {isUserLoggedIn ? (
@@ -592,32 +363,30 @@ function Header() {
                                         textDecoration: 'none',
                                         gap: '8px',
                                         boxShadow: '0 2px 8px rgba(116, 198, 157, 0.3)',
-                                        transition: 'all 0.2s ease',
                                         whiteSpace: 'nowrap'
                                     }}
-                                    onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-                                    onMouseLeave={(e) => e.target.style.transform = 'none'}
                                 >
                                     <i className="fas fa-plus"></i>
                                     <span>{t('createPost')}</span>
                                 </Link>
                                 
-                                <div className="dropdown">
+                                {/* User Menu Dropdown */}
+                                <div className="dropdown"
+                                    onMouseEnter={handleDropdownEnter}
+                                    onMouseLeave={handleDropdownLeave}
+                                >
                                     <a 
                                         className="d-flex align-items-center text-decoration-none dropdown-toggle" 
                                         href="#" 
                                         id="userMenu" 
-                                        data-bs-toggle="dropdown" 
-                                        aria-expanded="false"
                                         style={{
                                             color: '#B7E4C7',
                                             gap: '8px',
                                             padding: '8px 12px',
                                             borderRadius: '20px',
-                                            transition: 'all 0.2s ease'
+                                            cursor: 'pointer'
                                         }}
-                                        onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.15)'}
-                                        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                                        onClick={toggleDropdown}
                                     >
                                         <div style={{
                                             width: '36px',
@@ -633,43 +402,84 @@ function Header() {
                                             {userData?.username?.charAt(0).toUpperCase() || userData?.email?.charAt(0).toUpperCase() || 'U'}
                                         </div>
                                     </a>
-                                    <ul className="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="userMenu" style={{ 
-                                        borderRadius: '8px',
-                                        padding: '8px',
-                                        backgroundColor: '#2D6A4F',
-                                        minWidth: '200px'
-                                    }}>
+                                    <ul 
+                                        className="dropdown-menu dropdown-menu-end shadow-sm border-0" 
+                                        aria-labelledby="userMenu" 
+                                        style={{ 
+                                            borderRadius: '8px',
+                                            padding: '8px',
+                                            backgroundColor: '#2D6A4F',
+                                            minWidth: '200px',
+                                            marginTop: '0',
+                                            display: 'none',
+                                            opacity: '0',
+                                            visibility: 'hidden',
+                                            transition: 'all 0.3s ease',
+                                            position: 'absolute',
+                                            zIndex: '1000'
+                                        }}
+                                    >
                                         <li>
-                                            <Link className="dropdown-item py-2 px-3" to="/dashboard/" style={{ 
-                                                borderRadius: '6px',
-                                                color: '#D8F3DC',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px'
-                                            }}>
+                                            <Link 
+                                                className="dropdown-item py-2 px-3" 
+                                                to="/dashboard/" 
+                                                style={{ 
+                                                    borderRadius: '6px',
+                                                    color: '#D8F3DC',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.target.style.backgroundColor = 'transparent';
+                                                }}
+                                            >
                                                 <i className="bi bi-speedometer2"></i> {t('dashboard')}
                                             </Link>
                                         </li>
                                         <li>
-                                            <Link className="dropdown-item py-2 px-3" to="/profile/" style={{ 
-                                                borderRadius: '6px',
-                                                color: '#D8F3DC',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px'
-                                            }}>
+                                            <Link 
+                                                className="dropdown-item py-2 px-3" 
+                                                to="/profile/" 
+                                                style={{ 
+                                                    borderRadius: '6px',
+                                                    color: '#D8F3DC',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.target.style.backgroundColor = 'transparent';
+                                                }}
+                                            >
                                                 <i className="bi bi-person"></i> {t('profile')}
                                             </Link>
                                         </li>
                                         <li><hr className="dropdown-divider mx-3 my-2" style={{ borderColor: '#40916C' }} /></li>
                                         <li>
-                                            <Link className="dropdown-item py-2 px-3" to="/logout/" style={{ 
-                                                borderRadius: '6px',
-                                                color: '#D8F3DC',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '8px'
-                                            }}>
+                                            <Link 
+                                                className="dropdown-item py-2 px-3" 
+                                                to="/logout/" 
+                                                style={{ 
+                                                    borderRadius: '6px',
+                                                    color: '#D8F3DC',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    e.target.style.backgroundColor = 'rgba(183, 228, 199, 0.3)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.target.style.backgroundColor = 'transparent';
+                                                }}
+                                            >
                                                 <i className="bi bi-box-arrow-right"></i> {t('logout')}
                                             </Link>
                                         </li>
@@ -682,11 +492,6 @@ function Header() {
                                     className="nav-link" 
                                     to="/login/" 
                                     style={navLinkStyles}
-                                    onMouseEnter={(e) => Object.assign(e.target.style, navLinkHoverStyles)}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = 'transparent';
-                                        e.target.style.transform = 'none';
-                                    }}
                                 >
                                     <i className="bi bi-box-arrow-in-right"></i>
                                     {t('login')}
@@ -702,16 +507,7 @@ function Header() {
                                         gap: '8px',
                                         border: '2px solid #B7E4C7',
                                         color: '#B7E4C7',
-                                        transition: 'all 0.2s ease',
                                         whiteSpace: 'nowrap'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        e.target.style.backgroundColor = '#B7E4C7';
-                                        e.target.style.color = '#1B4332';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.target.style.backgroundColor = 'transparent';
-                                        e.target.style.color = '#B7E4C7';
                                     }}
                                 >
                                     <i className="bi bi-person-plus"></i>
@@ -741,6 +537,38 @@ function Header() {
                 {/* Mobile Menu Content */}
                 <div className="collapse d-lg-none mt-3" id="mobileMenu">
                     <div className="d-flex flex-column gap-3">
+                        {/* Mobile Search - Only shown on home page */}
+                        {location.pathname === "/" && (
+                            <form className="position-relative" onSubmit={handleSearchSubmit}>
+                                <input 
+                                    className="form-control border-0 shadow-sm" 
+                                    type="search" 
+                                    placeholder={t('searchPlaceholder')} 
+                                    aria-label="Search"
+                                    value={searchQuery}
+                                    onChange={handleSearchChange}
+                                    style={{
+                                        height: '40px',
+                                        borderRadius: '20px',
+                                        paddingLeft: '16px',
+                                        paddingRight: '40px',
+                                        fontSize: '0.9rem',
+                                        backgroundColor: '#ffffff'
+                                    }}
+                                />
+                                <button 
+                                    className="btn bg-transparent border-0 position-absolute top-50 end-0 translate-middle-y" 
+                                    type="submit"
+                                    style={{ 
+                                        color: '#1B4332',
+                                        right: '12px'
+                                    }}
+                                >
+                                    <i className="bi bi-search fs-6"></i>
+                                </button>
+                            </form>
+                        )}
+
                         {/* Mobile Navigation Links */}
                         <div className="d-flex flex-column gap-2">
                             <Link 
@@ -792,36 +620,6 @@ function Header() {
                                 {t('contact')}
                             </Link>
                         </div>
-
-                        {/* Mobile Search */}
-                        <form className="position-relative" onSubmit={handleSearchSubmit}>
-                            <input 
-                                className="form-control border-0 shadow-sm" 
-                                type="search" 
-                                placeholder={t('searchPlaceholder')} 
-                                aria-label="Search"
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                style={{
-                                    height: '40px',
-                                    borderRadius: '20px',
-                                    paddingLeft: '16px',
-                                    paddingRight: '40px',
-                                    fontSize: '0.9rem',
-                                    backgroundColor: '#ffffff'
-                                }}
-                            />
-                            <button 
-                                className="btn bg-transparent border-0 position-absolute top-50 end-0 translate-middle-y" 
-                                type="submit"
-                                style={{ 
-                                    color: '#1B4332',
-                                    right: '12px'
-                                }}
-                            >
-                                <i className="bi bi-search fs-6"></i>
-                            </button>
-                        </form>
 
                         {/* Mobile Auth Controls */}
                         <div className="d-flex flex-column gap-2">
