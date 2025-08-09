@@ -27,53 +27,53 @@
 //     },
 //     {
 //       id: 3,
-//       text: "ট্মেটো চাষের উপযুক্ত সময় কখন?",
+//       text: "ট্মেটো চাষের উপযুক্ত সময় কখন?",
 //       category: "ট্মেটো চাষ"
 //     },
 //     // {
-//     //   id: 4,
-//     //   text: "কৃষি বীমার জন্য আবেদন কীভাবে করতে হয়?",
-//     //   category: "বীমা ও নিরাপত্তা"
+//     //   id: 4,
+//     //   text: "কৃষি বীমার জন্য আবেদন কীভাবে করতে হয়?",
+//     //   category: "বীমা ও নিরাপত্তা"
 //     // },
 //     // {
-//     //   id: 5,
-//     //   text: "টমেটো চাষে কী কী রোগ হয়?",
-//     //   category: "রোগ ও পোকামাকড়"
+//     //   id: 5,
+//     //   text: "টমেটো চাষে কী কী রোগ হয়?",
+//     //   category: "রোগ ও পোকামাকড়"
 //     // },
 //     // {
-//     //   id: 6,
-//     //   text: "কৃষি যন্ত্রপাতি কেনার জন্য সরকারি সহায়তা কী?",
-//     //   category: "যন্ত্রপাতি ও সরঞ্জাম"
+//     //   id: 6,
+//     //   text: "কৃষি যন্ত্রপাতি কেনার জন্য সরকারি সহায়তা কী?",
+//     //   category: "যন্ত্রপাতি ও সরঞ্জাম"
 //     // },
 //     // {
-//     //   id: 7,
-//     //   text: "জলবায়ু পরিবর্তনের প্রভাব কৃষির উপর কী?",
-//     //   category: "জলবায়ু ও পরিবেশ"
+//     //   id: 7,
+//     //   text: "জলবায়ু পরিবর্তনের প্রভাব কৃষির উপর কী?",
+//     //   category: "জলবায়ু ও পরিবেশ"
 //     // },
 //     // {
-//     //   id: 8,
-//     //   text: "কৃষি পণ্য বিক্রির জন্য বাজার কোথায়?",
-//     //   category: "বাজার ও বিক্রয়"
+//     //   id: 8,
+//     //   text: "কৃষি পণ্য বিক্রির জন্য বাজার কোথায়?",
+//     //   category: "বাজার ও বিক্রয়"
 //     // },
 //     // {
-//     //   id: 9,
-//     //   text: "আলু চাষের জন্য কী কী বিষয় খেয়াল রাখতে হয়?",
-//     //   category: "ফসল চাষ"
+//     //   id: 9,
+//     //   text: "আলু চাষের জন্য কী কী বিষয় খেয়াল রাখতে হয়?",
+//     //   category: "ফসল চাষ"
 //     // },
 //     // {
-//     //   id: 10,
-//     //   text: "কৃষি জমির রেকর্ড কীভাবে দেখতে হয়?",
-//     //   category: "জমি ও নথি"
+//     //   id: 10,
+//     //   text: "কৃষি জমির রেকর্ড কীভাবে দেখতে হয়?",
+//     //   category: "জমি ও নথি"
 //     // },
 //     // {
-//     //   id: 11,
-//     //   text: "সেচের জন্য কী কী পদ্ধতি আছে?",
-//     //   category: "সেচ ও পানি ব্যবস্থাপনা"
+//     //   id: 11,
+//     //   text: "সেচের জন্য কী কী পদ্ধতি আছে?",
+//     //   category: "সেচ ও পানি ব্যবস্থাপনা"
 //     // },
 //     // {
-//     //   id: 12,
-//     //   text: "কৃষি গবেষণা কেন্দ্রে কী কী সুবিধা পাওয়া যায়?",
-//     //   category: "গবেষণা ও প্রশিক্ষণ"
+//     //   id: 12,
+//     //   text: "কৃষি গবেষণা কেন্দ্রে কী কী সুবিধা পাওয়া যায়?",
+//     //   category: "গবেষণা ও প্রশিক্ষণ"
 //     // }
 //   ];
 
@@ -407,6 +407,8 @@
 //           display: flex;
 //           flex-direction: column;
 //           gap: 1rem;
+//           max-width: 900px; /* Adjusted width */
+//           margin: 0 auto;
 //         }
 
 //         .welcome-section {
@@ -519,7 +521,7 @@
 //           position: relative;
 //           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 //         }
-
+        
 //         .user-message .message {
 //           background: #4f46e5;
 //           color: white;
@@ -531,7 +533,7 @@
 //           color: #1f2937;
 //           border-bottom-left-radius: 0.5rem;
 //         }
-
+        
 //         .error-message {
 //           background: #fee2e2 !important;
 //           color: #dc2626 !important;
@@ -554,7 +556,7 @@
 //           background: white;
 //           padding: 1rem;
 //           border-top: 1px solid #e5e7eb;
-//           position: relative; /* Added for quick questions dropdown positioning */
+//           position: relative;
 //         }
 
 //         .quick-questions-section {
@@ -595,7 +597,7 @@
 
 //         .quick-questions-dropdown {
 //           position: absolute;
-//           bottom: 100%; /* Position above the input */
+//           bottom: 100%;
 //           left: 0;
 //           right: 0;
 //           background: white;
@@ -828,6 +830,7 @@
 //         @media (max-width: 768px) {
 //           .chat-messages {
 //             padding: 1rem;
+//             max-width: 100%; /* Ensure full width on smaller screens */
 //           }
 
 //           .message {
@@ -893,8 +896,11 @@ import axios from 'axios';
 import SendIcon from '@mui/icons-material/Send';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '../../store/auth';
+import Toast from '../../plugin/Toast';
 
 const ChatInterface = () => {
+  const { allUserData } = useAuthStore();
   const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -912,59 +918,20 @@ const ChatInterface = () => {
     },
     {
       id: 2,
-      text: "ধান চাষের জন্য সেরা সময় কখন?",
-      category: "ধান চাষ"
+      text: "আলুর উৎপাদন প্রযুক্তি ",
+      category: "আলু চাষ"
     },
     {
       id: 3,
       text: "ট্মেটো চাষের উপযুক্ত সময় কখন?",
       category: "ট্মেটো চাষ"
     },
-    // {
-    //   id: 4,
-    //   text: "কৃষি বীমার জন্য আবেদন কীভাবে করতে হয়?",
-    //   category: "বীমা ও নিরাপত্তা"
-    // },
-    // {
-    //   id: 5,
-    //   text: "টমেটো চাষে কী কী রোগ হয়?",
-    //   category: "রোগ ও পোকামাকড়"
-    // },
-    // {
-    //   id: 6,
-    //   text: "কৃষি যন্ত্রপাতি কেনার জন্য সরকারি সহায়তা কী?",
-    //   category: "যন্ত্রপাতি ও সরঞ্জাম"
-    // },
-    // {
-    //   id: 7,
-    //   text: "জলবায়ু পরিবর্তনের প্রভাব কৃষির উপর কী?",
-    //   category: "জলবায়ু ও পরিবেশ"
-    // },
-    // {
-    //   id: 8,
-    //   text: "কৃষি পণ্য বিক্রির জন্য বাজার কোথায়?",
-    //   category: "বাজার ও বিক্রয়"
-    // },
-    // {
-    //   id: 9,
-    //   text: "আলু চাষের জন্য কী কী বিষয় খেয়াল রাখতে হয়?",
-    //   category: "ফসল চাষ"
-    // },
-    // {
-    //   id: 10,
-    //   text: "কৃষি জমির রেকর্ড কীভাবে দেখতে হয়?",
-    //   category: "জমি ও নথি"
-    // },
-    // {
-    //   id: 11,
-    //   text: "সেচের জন্য কী কী পদ্ধতি আছে?",
-    //   category: "সেচ ও পানি ব্যবস্থাপনা"
-    // },
-    // {
-    //   id: 12,
-    //   text: "কৃষি গবেষণা কেন্দ্রে কী কী সুবিধা পাওয়া যায়?",
-    //   category: "গবেষণা ও প্রশিক্ষণ"
-    // }
+    {
+      id: 4,
+      text: "আলু ভাইরাস রোগের সমন্বিত দমন ব্যবস্থাপনা",
+      category: " আলু চাষ"
+    },
+    // More prompts can be added here
   ];
 
   const scrollToBottom = () => {
@@ -981,9 +948,12 @@ const ChatInterface = () => {
   }, []);
 
   const handlePromptClick = (promptText) => {
+    if (!allUserData) {
+      Toast("warning", "Please login first to send messages");
+      return;
+    }
     setMessage(promptText);
-    setShowPrompts(false);
-    inputRef.current?.focus();
+    sendMessage(promptText);
   };
 
   const resetConversation = () => {
@@ -1059,14 +1029,18 @@ const ChatInterface = () => {
     );
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!message.trim() || isProcessing) return;
+  const sendMessage = async (msg) => {
+    if (!allUserData) {
+      Toast("warning", "Please login first to send messages");
+      return;
+    }
+    
+    if (!msg.trim() || isProcessing) return;
 
     try {
       setIsProcessing(true);
       const userMessage = {
-        text: message,
+        text: msg,
         isUser: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -1075,7 +1049,7 @@ const ChatInterface = () => {
       setShowPrompts(false); // Hide prompts after first message
 
       const response = await axios.post('http://127.0.0.1:8000/api/v1/chatbot/ask/', {
-        question: message
+        question: msg
       });
 
       const botMessage = {
@@ -1099,6 +1073,11 @@ const ChatInterface = () => {
       setMessage('');
       inputRef.current?.focus();
     }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    sendMessage(message);
   };
 
   return (
@@ -1125,12 +1104,18 @@ const ChatInterface = () => {
           <div className="welcome-section">
             <div className="welcome-message">
               <h2>স্বাগতম AgriAssist! 👋</h2>
+              <p> বর্তমানে চ্যাটবটের কাছে আলু,অলকচু, মুখীকচু, পানিকচু, মিষ্টি আলু, কামরাঙ্গা, তৈকর, লটকন, আমলকি, আঁশফল, রাম্বুতান, স্ট্রবেরি, বিলাতি গাব, কদবেল, বেল, জলপাই, ড্রাগন ফল, নাশপাতি, প্যাশন ফল, তেঁতুল, টমেটো, বেগুন, মুলা, শিম, মটরশুঁটি, ফুলকপি, বাঁধাকপি, লালশাক, বারি চীনাশাক ও বারি বাটিশাক ফসল সম্পর্কিত তথ্য রয়েছে। </p>
               <p>আমি আপনাকে কৃষি সম্পর্কিত তথ্য দিতে সাহায্য করব। আপনি নিম্নলিখিত বিষয়ে প্রশ্ন করতে পারেন:</p>
               <ul>
                 <li>কৃষি নিয়ন্ত্রণ ও নীতি</li>
                 <li>চাষাবাদ পদ্ধতি</li>
                 <li>রোগ ও পোকামাকড় নিয়ন্ত্রণ</li>
               </ul>
+              {!allUserData && (
+                <p className="login-prompt">
+                  Please <Link to="/login">login</Link> to start chatting
+                </p>
+              )}
             </div>
             
             {/* Custom Bangla Prompts Section */}
@@ -1142,7 +1127,7 @@ const ChatInterface = () => {
                     key={prompt.id}
                     className="prompt-button"
                     onClick={() => handlePromptClick(prompt.text)}
-                    disabled={isProcessing}
+                    disabled={isProcessing || !allUserData}
                   >
                     <div className="prompt-category">{prompt.category}</div>
                     <div className="prompt-text">{prompt.text}</div>
@@ -1188,7 +1173,7 @@ const ChatInterface = () => {
             <button 
               className="quick-questions-toggle"
               onClick={() => setShowQuickQuestions(!showQuickQuestions)}
-              disabled={isProcessing}
+              disabled={isProcessing || !allUserData}
             >
               <i className="bi bi-lightning-charge"></i>
               দ্রুত প্রশ্ন (Quick Questions)
@@ -1205,7 +1190,7 @@ const ChatInterface = () => {
                         handlePromptClick(prompt.text);
                         setShowQuickQuestions(false);
                       }}
-                      disabled={isProcessing}
+                      disabled={isProcessing || !allUserData}
                     >
                       <div className="quick-prompt-category">{prompt.category}</div>
                       <div className="quick-prompt-text">{prompt.text}</div>
@@ -1222,13 +1207,13 @@ const ChatInterface = () => {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="💬 আপনার প্রশ্ন লিখুন..."
-            disabled={isProcessing}
+            placeholder={allUserData ? "💬 আপনার প্রশ্ন লিখুন..." : "Please login to chat..."}
+            disabled={isProcessing || !allUserData}
             className="chat-input"
           />
           <button
             type="submit"
-            disabled={isProcessing || !message.trim()}
+            disabled={isProcessing || !message.trim() || !allUserData}
             className="send-button"
           >
             {isProcessing ? (
@@ -1297,7 +1282,7 @@ const ChatInterface = () => {
           display: flex;
           flex-direction: column;
           gap: 1rem;
-          max-width: 900px; /* Adjusted width */
+          max-width: 900px;
           margin: 0 auto;
         }
 
@@ -1326,6 +1311,22 @@ const ChatInterface = () => {
           text-align: left;
           display: inline-block;
           margin-top: 1rem;
+        }
+
+        .login-prompt {
+          color: #ef4444;
+          margin-top: 1rem;
+          font-weight: 500;
+        }
+
+        .login-prompt a {
+          color: #06beb6;
+          text-decoration: none;
+          font-weight: 600;
+        }
+
+        .login-prompt a:hover {
+          text-decoration: underline;
         }
 
         .prompts-section {
@@ -1362,7 +1363,7 @@ const ChatInterface = () => {
           font-family: inherit;
         }
 
-        .prompt-button:hover {
+        .prompt-button:hover:not(:disabled) {
           border-color: #06beb6;
           background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
           transform: translateY(-2px);
@@ -1475,7 +1476,7 @@ const ChatInterface = () => {
           justify-content: center;
         }
 
-        .quick-questions-toggle:hover {
+        .quick-questions-toggle:hover:not(:disabled) {
           background: rgba(6, 190, 182, 0.1);
           color: #06beb6;
         }
@@ -1521,7 +1522,7 @@ const ChatInterface = () => {
           gap: 0.3rem;
         }
 
-        .quick-prompt-button:hover {
+        .quick-prompt-button:hover:not(:disabled) {
           border-color: #06beb6;
           background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
           transform: translateY(-2px);
@@ -1720,7 +1721,7 @@ const ChatInterface = () => {
         @media (max-width: 768px) {
           .chat-messages {
             padding: 1rem;
-            max-width: 100%; /* Ensure full width on smaller screens */
+            max-width: 100%;
           }
 
           .message {

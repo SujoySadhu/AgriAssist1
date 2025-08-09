@@ -444,7 +444,7 @@ const Comment = ({ comment, postId, onCommentUpdate, depth = 0, isLoggedIn, setP
     // Handle confirmation
     confirmDialog.querySelector('#confirmDelete').addEventListener('click', async () => {
       try {
-        await api.delete(`comments/${commentToDelete.id}/`);
+        await api.delete(`/comments/${commentToDelete.id}/`);
         
         // Update the post's comments count locally
         setPost(prev => ({

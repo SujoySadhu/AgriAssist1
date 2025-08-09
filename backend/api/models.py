@@ -14,7 +14,8 @@ class User(AbstractUser):
     otp = models.CharField(max_length=100, null=True, blank=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=False)
-    
+    is_google_user = models.BooleanField(default=False)
+    avatar = models.URLField(max_length=200, null=True, blank=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

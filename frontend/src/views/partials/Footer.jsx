@@ -12,20 +12,7 @@ function Footer() {
                             <p className="mb-4" style={{ color: '#D8F3DC' }}>
                                 Empowering farmers with AI-driven insights and sustainable agricultural practices.
                             </p>
-                            <div className="footer-social">
-                                <a className="btn btn-square rounded-circle me-2" href="#" style={{ backgroundColor: '#74C69D', color: '#1B4332' }}>
-                                    <i className="fab fa-facebook-f"></i>
-                                </a>
-                                <a className="btn btn-square rounded-circle me-2" href="#" style={{ backgroundColor: '#74C69D', color: '#1B4332' }}>
-                                    <i className="fab fa-twitter"></i>
-                                </a>
-                                <a className="btn btn-square rounded-circle me-2" href="#" style={{ backgroundColor: '#74C69D', color: '#1B4332' }}>
-                                    <i className="fab fa-instagram"></i>
-                                </a>
-                                <a className="btn btn-square rounded-circle" href="#" style={{ backgroundColor: '#74C69D', color: '#1B4332' }}>
-                                    <i className="fab fa-linkedin-in"></i>
-                                </a>
-                            </div>
+                           
                         </div>
                     </div>
                     <div className="col-lg-4">
@@ -34,7 +21,7 @@ function Footer() {
                             <ul className="list-unstyled">
                                 <li><Link to="/" style={{ color: '#D8F3DC' }}>Home</Link></li>
                                 <li><Link to="/about" style={{ color: '#D8F3DC' }}>About Us</Link></li>
-                                <li><Link to="/services" style={{ color: '#D8F3DC' }}>Services</Link></li>
+                                
                                 <li><Link to="/contact" style={{ color: '#D8F3DC' }}>Contact</Link></li>
                             </ul>
                         </div>
@@ -48,7 +35,7 @@ function Footer() {
                             </p>
                             <p className="mb-2" style={{ color: '#D8F3DC' }}>
                                 <i className="fas fa-phone-alt me-2"></i>
-                                +123 456 7890
+                                +8801888888888
                             </p>
                             <p className="mb-2" style={{ color: '#D8F3DC' }}>
                                 <i className="fas fa-envelope me-2"></i>
