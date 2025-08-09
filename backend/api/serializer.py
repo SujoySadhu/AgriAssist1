@@ -398,7 +398,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             self.Meta.depth = 0
         else:
             self.Meta.depth = 3
-
+#author serializer
 class AuthorStats(serializers.Serializer):
     views = serializers.IntegerField(default=0)
     posts = serializers.IntegerField(default=0)

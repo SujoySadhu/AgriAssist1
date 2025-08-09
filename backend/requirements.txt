@@ -28,29 +28,30 @@
 # faiss-cpu
 # langchain-google-genai
 # Core Django
+####pip install -r file
 Django==4.2
-djangorestframework==3.14.0
-django-cors-headers==3.14.0
-djangorestframework-simplejwt==5.2.2
+djangorestframework==3.14.0 #Django-তে REST API তৈরি করার লাইব্রেরি।
+django-cors-headers==3.14.0 # অন্য ডোমেইন থেকে API access এর জন্য CORS হ্যান্ডেল করে।
+djangorestframework-simplejwt==5.2.2 #authentication যোগ করে।
 
 # Dependencies
-asgiref==3.7.2
+asgiref==3.7.2 #authentication যোগ করে।
 sqlparse==0.4.4
-tzdata==2023.3
-coreapi
+tzdata==2023.3 # টাইমজোন ডাটাবেস, সময় সম্পর্কিত কাজের জন্য।
+coreapi #API documentation ও interaction এর জন্য টুল।
 
 # Third-party packages
 django-anymail==9.1
-django-ckeditor==6.7.0
+django-ckeditor==6.7.0 #API documentation ও interaction এর জন্য টুল।
 django-ckeditor-5==0.2.10
-django-dotenv==1.4.2
+django-dotenv==1.4.2 #.env ফাইল থেকে environment variables লোড করে।
 django-environ==0.9.0
 django-import-export==3.2.0
-django-jazzmin==2.6.0
-drf-yasg==1.21.7
-humanize==4.6.0
+django-jazzmin==2.6.0 #Django admin interface কে সুন্দর ও কাস্টমাইজেবল করে।
+drf-yasg==1.21.7 #Django REST Framework-এর জন্য Swagger API documentation জেনারেট করে।
+humanize==4.6.0 #সংখ্যা/সময় ইত্যাদি মানুষের পড়ার উপযোগী ফরম্যাটে দেখায় 
 requests==2.31.0
-shortuuid==1.0.11
+shortuuid==1.0.11 #ছোট এবং সহজে পড়া যায় এমন UUID জেনারেট করে। unique id
 
 # Chatbot/AI requirements
 google-generativeai

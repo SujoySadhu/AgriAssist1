@@ -8,7 +8,7 @@ import useUserData from "../../plugin/useUserData";
 import moment from "moment";
 import Moment from "../../plugin/Moment";
 import Toast from "../../plugin/Toast";
-
+//this section is updated at detail.jsx
 function Comments() {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);

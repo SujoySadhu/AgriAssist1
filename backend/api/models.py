@@ -1,12 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.db.models.signals import post_save
+from django.contrib.auth.models import AbstractUser #Default Django user model 
+from django.db.models.signals import post_save #model save হওয়ার পরে কিছু action ট্রিগার করার জন্য।
 from django.utils.html import mark_safe
-from django.utils.text import slugify
+from django.utils.text import slugify # title কে URL-friendly slug বানাতে।
 from shortuuid.django_fields import ShortUUIDField
-import shortuuid
+import shortuuid #ছোট, unique string 
 
-
+#ORM (Object Relational Mapper) দিয়ে  table design করো Python class আকারে।
 class User(AbstractUser):
     username = models.CharField(unique=True, max_length=100)
     email = models.EmailField(unique=True) 
@@ -16,13 +16,13 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=False)
     
     
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = 'email'#django te default login username bt here email
+    REQUIRED_FIELDS = ['username'] #superuser create e username + email
 
     def __str__(self):
-        return self.email
+        return self.email #instance ke string korle ki show korbe
     
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): #unnamed ,named (key-pair)
         email_username, mobile = self.email.split("@")
         if self.full_name == "" or self.full_name == None:
             self.full_name = email_username
@@ -33,7 +33,7 @@ class User(AbstractUser):
         if self.is_superuser or self.is_staff:
           self.is_active = True
     
-        super(User, self).save(*args, **kwargs)
+        super(User, self).save(*args, **kwargs) #parent called save
 
 
 class Profile(models.Model):
@@ -46,7 +46,7 @@ class Profile(models.Model):
     country = models.CharField(max_length=100, null=True, blank=True)
     facebook = models.CharField(max_length=100, null=True, blank=True)
     twitter = models.CharField(max_length=100, null=True, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True) #when created
 
     def __str__(self):
         if self.full_name:
@@ -59,7 +59,7 @@ class Profile(models.Model):
         if self.full_name == "" or self.full_name == None:
             self.full_name = self.user.full_name
         super(Profile, self).save(*args, **kwargs)
-
+#signal functions(event is occured then automatic function is called)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
             Profile.objects.create(user=instance)   
@@ -67,8 +67,8 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
 
-post_save.connect(create_user_profile, sender=User)
-post_save.connect(save_user_profile, sender=User)
+post_save.connect(create_user_profile, sender=User)#post_save signals(user model theke signal asle function called),user create hole auto profile create 
+post_save.connect(save_user_profile, sender=User)#user obj save hole profile obj auto save
 
 class Category(models.Model):
     title = models.CharField(max_length=100)
@@ -79,7 +79,7 @@ class Category(models.Model):
         return self.title
     
     class Meta:
-        verbose_name_plural = "Category"
+        verbose_name_plural = "Category"#model er extra ssettings is stored at meta class
 
     def save(self, *args, **kwargs):
         if self.slug == "" or self.slug == None:

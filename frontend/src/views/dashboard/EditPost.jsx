@@ -20,8 +20,9 @@ function EditPost() {
     const navigate = useNavigate();
     const param = useParams();
 
+    //get()
     const fetchPost = async () => {
-        const response = await apiInstance.get(`author/dashboard/post-detail/${userId}/${param.id}/`);
+        const response = await apiInstance.get(`author/dashboard/post-detail/${userId}/${param.id}/`);//userid,postid
         setEditPost(response.data);
         // Set initial image preview when post is fetched
         if (response.data.image) {
@@ -33,6 +34,7 @@ function EditPost() {
         }
     };
 
+    //get()
     const fetchCategory = async () => {
         const response = await apiInstance.get(`post/category/list/`);
         setCategoryList(response.data);
@@ -42,6 +44,7 @@ function EditPost() {
         fetchPost();
     }, []);
 
+    //new edit update according to tag
     const handleCreatePostChange = (event) => {
         setEditPost({
             ...post,
@@ -49,6 +52,7 @@ function EditPost() {
         });
     };
 
+    //new image 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
         if (selectedFile) {
@@ -67,6 +71,7 @@ function EditPost() {
         }
     };
 
+    ////new additional_image 
     const handleAdditionalImagesChange = (event) => {
         const selectedFiles = Array.from(event.target.files);
         if (selectedFiles.length > 0) {
@@ -94,6 +99,7 @@ function EditPost() {
         setAdditionalImagePreviews(newPreviews);
     };
 
+    //form handle func
     const handleCreatePost = async (e) => {
         setIsLoading(true);
         e.preventDefault();

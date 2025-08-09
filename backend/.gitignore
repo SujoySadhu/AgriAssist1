@@ -4,7 +4,12 @@ plant_disease/plant_disease_prediction_model.h5
 # Ignore environment variables
 .env
 
-# (Optional) Ignore other large or generated files
+# (Optional) Ignore other large or generated files..Python যখন তোমার .py ফাইল রান করে, তখন সে ওই কোডকে bytecode এ রূপান্তর করে (যাতে পরের বার দ্রুত রান হয়)।
+
+#এই bytecode .pyc ফাইল আকারে __pycache__/ ফোল্ডারে জমা থাকে।
+#Python version, OS আলাদা হলে .pyc ফাইলও আলাদা হবে।
+#মানে তোমার Windows-এর .pyc আর অন্য কারও Linux-এর .pyc এক হবে না।
+#
 *.pyc
 __pycache__/
 venv/ 

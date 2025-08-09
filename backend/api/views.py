@@ -195,6 +195,7 @@ class GoogleRegisterView(APIView):
 
 
 # This code defines another DRF View class called ProfileView, which inherits from generics.RetrieveAPIView and used to show user profile view.
+#profile data show/update
 class ProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = (AllowAny,)
     serializer_class = api_serializer.ProfileSerializer
@@ -205,7 +206,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         user = api_models.User.objects.get(id=user_id)
         profile = api_models.Profile.objects.get(user=user)
         return profile
-
+#all category show
 class CategoryListAPIView(generics.ListAPIView):
     serializer_class = api_serializer.CategorySerializer
     permission_classes = [AllowAny]
@@ -213,7 +214,7 @@ class CategoryListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return api_models.Category.objects.all()
 
-
+#ekta category er under e all posts
 class PostCategoryListAPIView(generics.ListAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
@@ -223,7 +224,7 @@ class PostCategoryListAPIView(generics.ListAPIView):
         category = api_models.Category.objects.get(slug=category_slug)
         return api_models.Post.objects.filter(category=category, status="Active")
     
-
+#all active posts ,over by views
 class PostListAPIView(generics.ListAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
@@ -236,7 +237,7 @@ class PostListAPIView(generics.ListAPIView):
         except Exception as e:
             print(f"Error fetching posts: {str(e)}")
             return api_models.Post.objects.none()  # Return empty queryset on error
-
+#latest posts show
 class LatestPostListAPIView(generics.ListAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
@@ -249,7 +250,7 @@ class LatestPostListAPIView(generics.ListAPIView):
         except Exception as e:
             print(f"Error fetching latest posts: {str(e)}")
             return api_models.Post.objects.none()  # Return empty queryset on error
-
+#post detail viw and count view
 class PostDetailAPIView(generics.RetrieveAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
@@ -297,7 +298,7 @@ class LikePostAPIView(APIView):
                     type="Like",
                 )
             return Response({"message": "Post Liked"}, status=status.HTTP_201_CREATED)
-
+#to addd a new comment on a post
 class PostCommentAPIView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
@@ -327,7 +328,7 @@ class PostCommentAPIView(APIView):
         return Response(serializer.errors, status=400)
 
 
-
+#comment details who can moderate,destroy
 class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = api_serializer.CommentSerializer
     permission_classes = [IsAuthenticated]
@@ -481,7 +482,7 @@ class DashboardMarkNotiSeenAPIView(APIView):
         noti.save()
 
         return Response({"message": "Noti Marked As Seen"}, status=status.HTTP_200_OK)
-
+#dashboard theke onno user ke reply korte
 class DashboardPostCommentAPIView(APIView):
     @swagger_auto_schema(
         request_body=openapi.Schema(
@@ -504,7 +505,7 @@ class DashboardPostCommentAPIView(APIView):
         comment.save()
 
         return Response({"message": "Comment Response Sent"}, status=status.HTTP_201_CREATED)
-
+#new post create
 class DashboardPostCreateAPIView(generics.CreateAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
@@ -556,7 +557,7 @@ class DashboardPostCreateAPIView(generics.CreateAPIView):
                 )
 
         return Response({"message": "Post Created Successfully"}, status=status.HTTP_201_CREATED)
-
+#post edit/delate
 class DashboardPostEditAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = api_serializer.PostSerializer
     permission_classes = [AllowAny]
@@ -591,7 +592,7 @@ class DashboardPostEditAPIView(generics.RetrieveUpdateDestroyAPIView):
         except api_models.Category.DoesNotExist:
             return Response({"message": "Category not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Update post fields
+        # Update post fields//deserilizer//postserilizer e deserilizer use hoi ni eikhane manually kora hoise
         post_instance.title = title
         post_instance.description = description
         post_instance.tags = tags
