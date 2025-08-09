@@ -180,7 +180,7 @@ class GoogleRegisterView(APIView):
             )
             
             # Create profile
-            api_models.Profile.objects.create(user=user)
+            #api_models.Profile.objects.create(user=user)
             
             return Response({
                 'success': True,
@@ -328,21 +328,30 @@ class PostCommentAPIView(APIView):
 
 
 
+# class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+#     serializer_class = api_serializer.CommentSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def get_queryset(self):
+#         return api_models.Comment.objects.filter(
+#             Q(user=self.request.user) | 
+#             Q(post__user=self.request.user)  # Allow post authors to moderate
+#         )
+
+#     def perform_destroy(self, instance):
+#         # # Soft delete implementation example
+#         # instance.is_deleted = True
+#         instance.delete()   
 class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = api_serializer.CommentSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return api_models.Comment.objects.filter(
-            Q(user=self.request.user) | 
-            Q(post__user=self.request.user)  # Allow post authors to moderate
-        )
+        # FIX: Allow users to delete their own comments
+        return api_models.Comment.objects.filter(user=self.request.user)
 
     def perform_destroy(self, instance):
-        # Soft delete implementation example
-        instance.is_deleted = True
-        instance.save()   
-
+        instance.delete()
 
 class BookmarkPostAPIView(APIView):
     @swagger_auto_schema(
