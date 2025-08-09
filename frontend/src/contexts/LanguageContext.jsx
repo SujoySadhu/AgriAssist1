@@ -28,7 +28,7 @@ const translations = {
     
     // Disease Detection
     plantDiseaseDetection: "Plant Disease Detection",
-    uploadDescription: "Upload a clear image of your plant's leaf to detect diseases and get treatment recommendations.",
+    uploadDescription: "To get a diagnosis of the disease and treatment advice, please upload a clear picture of your plant's leaf. This model currently works well for potato and tomato crops. This AI system can sometimes make mistakes. For a final decision, consult with an agricultural expert.",
     dragDropText: "Drag & Drop or Click to Upload",
     supportedFormats: "Supported formats: JPG, PNG (Max 5MB)",
     selectImage: "Select Image",
@@ -243,7 +243,7 @@ const translations = {
     
     // Disease Detection
     plantDiseaseDetection: "উদ্ভিদ রোগ শনাক্তকরণ",
-    uploadDescription: "রোগ শনাক্তকরণ এবং চিকিৎসার পরামর্শ পেতে আপনার উদ্ভিদের পাতার একটি স্পষ্ট ছবি আপলোড করুন।",
+    uploadDescription: "রোগ শনাক্তকরণ এবং চিকিৎসার পরামর্শ পেতে আপনার উদ্ভিদের পাতার একটি স্পষ্ট ছবি আপলোড করুন।এই মডেলটি বর্তমানে আলু ও টমেটো ফসলের জন্য ভালো কাজ করে।এই এআই সিস্টেমটি মাঝে মাঝে ভুল করতে পারে। চূড়ান্ত সিদ্ধান্তের জন্য একজন কৃষি বিশেষজ্ঞের পরামর্শ নিন।",
     dragDropText: "টেনে আনুন বা আপলোড করতে ক্লিক করুন",
     supportedFormats: "সমর্থিত ফরম্যাট: JPG, PNG (সর্বোচ্চ ৫MB)",
     selectImage: "ছবি নির্বাচন করুন",

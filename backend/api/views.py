@@ -326,22 +326,7 @@ class PostCommentAPIView(APIView):
         
         return Response(serializer.errors, status=400)
 
-
-
-# class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
-#     serializer_class = api_serializer.CommentSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def get_queryset(self):
-#         return api_models.Comment.objects.filter(
-#             Q(user=self.request.user) | 
-#             Q(post__user=self.request.user)  # Allow post authors to moderate
-#         )
-
-#     def perform_destroy(self, instance):
-#         # # Soft delete implementation example
-#         # instance.is_deleted = True
-#         instance.delete()   
+  
 class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = api_serializer.CommentSerializer
     permission_classes = [IsAuthenticated]
@@ -685,24 +670,7 @@ class PasswordResetRequestView(APIView):
         except api_models.User.DoesNotExist:
             return Response({"success": False, "error": "User not found"}, status=404)
 
-# class PasswordResetConfirmView(APIView):
-#     permission_classes = [AllowAny]
 
-#     def post(self, request):
-#         email = request.data.get('email')
-#         otp = request.data.get('otp')
-#         new_password = request.data.get('new_password')
-
-#         try:
-#             user = api_models.User.objects.get(email=email)
-#             if user.otp == otp and timezone.now() < user.otp_created_at + timedelta(minutes=10):
-#                 user.set_password(new_password)
-#                 user.otp = None
-#                 user.save()
-#                 return Response({"success": True, "message": "Password reset successful"})
-#             return Response({"success": False, "error": "Invalid or expired OTP"}, status=400)
-#         except api_models.User.DoesNotExist:
-#             return Response({"success": False, "error": "User not found"}, status=404)
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
 
